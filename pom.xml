@@ -1,24 +1,47 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.unbiquitous.driver</groupId>
-  <artifactId>execution</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <description>Driver which allows a Device to host foreign code.</description>
-  
-  <dependencies>
-	<dependency>
-		<groupId> org.abstractmeta</groupId>
-		<artifactId>compilation-toolbox</artifactId>
-		<version>0.2.0</version>
-		<scope>system</scope>
-		<systemPath>${project.basedir}/lib/compilation-toolbox-0.2.0.jar</systemPath>
-	</dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.unbiquitous.driver</groupId>
+	<artifactId>execution</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<description>Driver which allows a Device to host foreign code.</description>
 
-  	 <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.8.2</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId> org.abstractmeta</groupId>
+			<artifactId>compilation-toolbox</artifactId>
+			<version>0.2.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/compilation-toolbox-0.2.0.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>ubiquitos</groupId>
+			<artifactId>uos.core</artifactId>
+			<version>2.2.0_DEV</version>
+		</dependency>
+		<dependency>
+			<groupId>luaj</groupId>
+			<artifactId>luaj-jse</artifactId>
+			<version>2.0.2</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>
