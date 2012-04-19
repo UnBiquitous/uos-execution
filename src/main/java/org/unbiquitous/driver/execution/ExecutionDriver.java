@@ -32,6 +32,14 @@ public class ExecutionDriver implements UosDriver {
 		driver.addService("executeAgent");
 	}
 	
+	public UpDriver getDriver() {	return driver;	}
+
+	public void init(Gateway gateway, String instanceId) {}
+
+	public void destroy() {}
+
+	public List<UpDriver> getParent() {	return null;	}
+	
 	public void remoteExecution(ServiceCall call, ServiceResponse response,
 			UOSMessageContext object) {
 		try {
@@ -59,22 +67,6 @@ public class ExecutionDriver implements UosDriver {
 			logger.error("Error handling Execution call. Cause:",e);
 			response.setError("Error handling Execution call. Cause:"+e.getMessage());
 		}
-	}
-
-	@Override
-	public UpDriver getDriver() {
-		return driver;
-	}
-
-	@Override
-	public void init(Gateway gateway, String instanceId) {}
-
-	@Override
-	public void destroy() {}
-
-	@Override
-	public List<UpDriver> getParent() {
-		return null;
 	}
 
 	public void executeAgent(ServiceCall call, ServiceResponse response,

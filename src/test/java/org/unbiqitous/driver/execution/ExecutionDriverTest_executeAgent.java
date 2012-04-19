@@ -4,9 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Serializable;
@@ -40,6 +38,12 @@ public class ExecutionDriverTest_executeAgent {
 		assertEquals((Integer)(before+1),AgentSpy.count);
 	}
 
+	//TODO: Run the agent on a Thread.
+	//TODO: The agent must have acces to the gateway in order to interact 
+	//		with the environment.
+	//TODO: We must assure that the properties are all transient
+	//TODO: check if there is a way to do it with OSGi
+	
 	@Test public void dontAcceptANonAgentAgent() throws Exception{
 		NonAgent a = new NonAgent();
 		
