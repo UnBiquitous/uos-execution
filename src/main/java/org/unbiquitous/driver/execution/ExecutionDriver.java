@@ -25,6 +25,7 @@ public class ExecutionDriver implements UosDriver {
 	private long script_id = 0;
 
 	private UpDriver driver;
+	private Gateway gateway;
 	
 	public ExecutionDriver(){
 		driver = new UpDriver("uos.ExecutionDriver");
@@ -34,7 +35,7 @@ public class ExecutionDriver implements UosDriver {
 	
 	public UpDriver getDriver() {	return driver;	}
 
-	public void init(Gateway gateway, String instanceId) {}
+	public void init(Gateway gateway, String instanceId) {this.gateway = gateway;}
 
 	public void destroy() {}
 
@@ -80,7 +81,7 @@ public class ExecutionDriver implements UosDriver {
 			if (o instanceof Agent){
 				final Agent a = ((Agent)o);
 				new Thread(){
-					public void run() {a.run();};
+					public void run() {a.run(gateway);};
 				}.start();
 			}else{
 				response.setError("The informed Agent is not a valid one.");

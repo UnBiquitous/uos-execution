@@ -1,6 +1,7 @@
 package org.unbiqitous.driver.execution;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.unbiquitous.driver.execution.ExecutionDriver;
 
+import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
@@ -72,10 +74,24 @@ public class ExecutionDriverTest_executeAgent {
 		assertEquals("Something unexpected happened.",response.getError());
 	}
 	
-	//TODO: The agent must have access to the gateway in order to interact 
-	//		with the environment.
+	@Test public void theAgentMustHaveAccessToTheGateway() throws Exception{
+		MyAgent a = new MyAgent();
+		
+		Gateway g = mock(Gateway.class);
+		
+		driver.init(g, null);
+		driver.executeAgent(null,response,createAgentMockContext(a));
+		
+		assertNull("No error should be found.",response.getError());
+		Thread.sleep(100);
+		assertEquals(g, AgentSpy.lastAgent.gateway);
+	}
+	
 	//TODO: We must assure that the properties are all transient
 	//TODO: check if there is a way to do it with OSGi
+	//TODO: Agent must be able to request to move itself
+	//TODO? Must the agent have a lifecycle?
+	//TODO? Do we need to control the execution of the Agent.
 	
 	private UOSMessageContext createAgentMockContext(Serializable a)
 			throws IOException {
@@ -96,12 +112,16 @@ class NonAgent implements Serializable{
 
 class AgentSpy{
 	static Integer count = 0;
+	static MyAgent lastAgent = null;
 }
 
 class MyAgent implements Agent{
 	private static final long serialVersionUID = -8267793981973238896L;
 	public Integer sleepTime = 0;
-	public void run(){
+	public Gateway gateway;
+	public void run(Gateway gateway){
+		AgentSpy.lastAgent = this;
+		this.gateway = gateway; 
 //		/AgentSpy.count++;
 		try {	Thread.sleep(sleepTime);	} catch (Exception e) {}
 		AgentSpy.count++;
