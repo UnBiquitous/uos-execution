@@ -8,7 +8,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.luaj.vm2.LoadState;
 import org.luaj.vm2.lib.jse.JsePlatform;
-import org.unbiqitous.driver.execution.Agent;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;

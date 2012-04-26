@@ -1,4 +1,4 @@
-package org.unbiqitous.driver.execution;
+package org.unbiquitous.driver.execution;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

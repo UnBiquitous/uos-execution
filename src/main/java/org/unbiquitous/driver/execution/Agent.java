@@ -1,4 +1,4 @@
-package org.unbiqitous.driver.execution;
+package org.unbiquitous.driver.execution;
 
 import java.io.Serializable;
 
