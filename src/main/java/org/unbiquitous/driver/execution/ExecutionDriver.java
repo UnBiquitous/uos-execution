@@ -78,7 +78,10 @@ public class ExecutionDriver implements UosDriver {
 			}
 			Object o = new ObjectInputStream(ctx.getDataInputStream()).readObject();
 			if (o instanceof Agent){
-				((Agent)o).run();
+				final Agent a = ((Agent)o);
+				new Thread(){
+					public void run() {a.run();};
+				}.start();
 			}else{
 				response.setError("The informed Agent is not a valid one.");
 			}

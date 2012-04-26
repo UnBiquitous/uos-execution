@@ -27,23 +27,20 @@ public class ExecutionDriverTest_executeAgent {
 		
 	}
 	
-	@Test public void runTheCalledAgent() throws Exception{
-		Agent a = new MyAgent();
+	@Test public void runTheCalledAgentOnAThread() throws Exception{
+		MyAgent a = new MyAgent();
+		a.sleepTime = 1000;
 		
 		Integer before = AgentSpy.count;
 		
 		driver.executeAgent(null,response,createAgentMockContext(a));
 		
 		assertNull("No error should be found.",response.getError());
+		assertEquals((Integer)(before),AgentSpy.count);
+		Thread.sleep(a.sleepTime + 500);
 		assertEquals((Integer)(before+1),AgentSpy.count);
 	}
 
-	//TODO: Run the agent on a Thread.
-	//TODO: The agent must have acces to the gateway in order to interact 
-	//		with the environment.
-	//TODO: We must assure that the properties are all transient
-	//TODO: check if there is a way to do it with OSGi
-	
 	@Test public void dontAcceptANonAgentAgent() throws Exception{
 		NonAgent a = new NonAgent();
 		
@@ -75,6 +72,11 @@ public class ExecutionDriverTest_executeAgent {
 		assertEquals("Something unexpected happened.",response.getError());
 	}
 	
+	//TODO: The agent must have access to the gateway in order to interact 
+	//		with the environment.
+	//TODO: We must assure that the properties are all transient
+	//TODO: check if there is a way to do it with OSGi
+	
 	private UOSMessageContext createAgentMockContext(Serializable a)
 			throws IOException {
 		final PipedInputStream in = new PipedInputStream();
@@ -98,8 +100,10 @@ class AgentSpy{
 
 class MyAgent implements Agent{
 	private static final long serialVersionUID = -8267793981973238896L;
-	
+	public Integer sleepTime = 0;
 	public void run(){
+//		/AgentSpy.count++;
+		try {	Thread.sleep(sleepTime);	} catch (Exception e) {}
 		AgentSpy.count++;
 	}
 }
