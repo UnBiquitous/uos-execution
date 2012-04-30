@@ -1,5 +1,6 @@
 package org.unbiquitous.driver.execution;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -73,20 +74,34 @@ public class ExecutionDriver implements UosDriver {
 			UOSMessageContext ctx) {
 		try {
 			if(ctx.getDataInputStream() == null){
-				response.setError("No Agent was tranfered.");
+				response.setError("No Data Stream, containing agent, was found.");
 				return;
 			}
-			Object o = new ObjectInputStream(ctx.getDataInputStream()).readObject();
-			if (o instanceof Agent){
-				final Agent a = ((Agent)o);
-				new Thread(){
-					public void run() {a.run(gateway);};
-				}.start();
-			}else{
-				response.setError("The informed Agent is not a valid one.");
-			}
-		} catch (Exception e) {
+			final DataInputStream stream = ctx.getDataInputStream();
+			new Thread(){
+				public void run() {
+					Object o = null;
+					try {
+						while (stream.available() == 0){
+							System.out.print('n');
+						}
+						ObjectInputStream reader = new ObjectInputStream(stream);
+							o = reader.readObject();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if (o instanceof Agent){
+						final Agent a = ((Agent)o);
+						a.run(gateway);
+					}else{
+						//response.setError("The informed Agent is not a valid one.");
+					}
+					};
+			}.start();
+		} catch (Throwable e) {
 			response.setError("Something unexpected happened.");
+			e.printStackTrace();
 		}
 	}
 

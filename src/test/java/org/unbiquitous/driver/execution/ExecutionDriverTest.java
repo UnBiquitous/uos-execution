@@ -1,9 +1,6 @@
 package org.unbiquitous.driver.execution;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,8 +10,6 @@ import br.unb.unbiquitous.ubiquitos.uos.driverManager.UosDriver;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDriver;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpService;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpService.ParameterType;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class ExecutionDriverTest {
 

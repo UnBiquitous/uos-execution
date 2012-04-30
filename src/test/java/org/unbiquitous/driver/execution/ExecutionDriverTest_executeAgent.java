@@ -33,23 +33,32 @@ public class ExecutionDriverTest_executeAgent {
 		MyAgent a = new MyAgent();
 		a.sleepTime = 1000;
 		
-		Integer before = AgentSpy.count;
+		final Integer before = AgentSpy.count;
 		
-		driver.executeAgent(null,response,createAgentMockContext(a));
+		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
 		assertEquals((Integer)(before),AgentSpy.count);
-		Thread.sleep(a.sleepTime + 500);
-		assertEquals((Integer)(before+1),AgentSpy.count);
+		assertEventuallyTrue("Must increment the SpyCount eventually", 
+				a.sleepTime + 1000, new EventuallyAssert(){
+				public boolean assertion(){
+					return (Integer)(before+1) == AgentSpy.count;
+				}
+			});
 	}
 
+	//FIXME: How to test this?
 	@Test public void dontAcceptANonAgentAgent() throws Exception{
 		NonAgent a = new NonAgent();
+		final Integer before = AgentSpy.count;
+		execute(a);
 		
-		driver.executeAgent(null,response,createAgentMockContext(a));
+		//assertNotNull("An error is expected.",response.getError());
+		Thread.sleep(2000);
+		assertEquals("Mustn't increment the SpyCount eventually",
+				(Integer)(before),AgentSpy.count);
+		//assertEquals("The informed Agent is not a valid one.",response.getError());
 		
-		assertNotNull("An error is expected.",response.getError());
-		assertEquals("The informed Agent is not a valid one.",response.getError());
 	}
 	
 	@Test public void dontBreakWithoutAnAgent() throws Exception{
@@ -60,7 +69,7 @@ public class ExecutionDriverTest_executeAgent {
 		});
 		
 		assertNotNull("An error is expected.",response.getError());
-		assertEquals("No Agent was tranfered.",response.getError());
+		assertEquals("No Data Stream, containing agent, was found.",response.getError());
 	}
 	
 	@Test public void dontBreakWhenSomethingBadHappens() throws Exception{
@@ -77,37 +86,59 @@ public class ExecutionDriverTest_executeAgent {
 	@Test public void theAgentMustHaveAccessToTheGateway() throws Exception{
 		MyAgent a = new MyAgent();
 		
-		Gateway g = mock(Gateway.class);
+		final Gateway g = mock(Gateway.class);
 		
 		driver.init(g, null);
-		driver.executeAgent(null,response,createAgentMockContext(a));
+		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
-		Thread.sleep(100);
+		assertEventuallyTrue("The gateway mus be the same as the one informed", 
+				1000, new EventuallyAssert(){
+				public boolean assertion(){
+					return AgentSpy.lastAgent != null && g == AgentSpy.lastAgent.gateway;
+				}
+			});
 		assertEquals(g, AgentSpy.lastAgent.gateway);
 	}
 	
+	//TODO: SHouldn't wait 4 ever for a agent to be received
 	//TODO: We must assure that the properties are all transient
 	//TODO: check if there is a way to do it with OSGi
 	//TODO: Agent must be able to request to move itself
 	//TODO? Must the agent have a lifecycle?
 	//TODO? Do we need to control the execution of the Agent.
 	
-	private UOSMessageContext createAgentMockContext(Serializable a)
-			throws IOException {
+	static interface EventuallyAssert{
+		boolean assertion();
+	}
+	
+	private void assertEventuallyTrue(String msg, long wait, EventuallyAssert assertion) throws InterruptedException{
+		long time = 0;
+		while (time <= wait && !assertion.assertion()){
+			Thread.sleep(10);
+			time += 10;
+		}
+		assertTrue(msg,assertion.assertion());
+	}
+	
+	private void execute(Serializable a) throws Exception{
 		final PipedInputStream in = new PipedInputStream();
-		new ObjectOutputStream(new PipedOutputStream(in)).writeObject(a);
-		
-		return new UOSMessageContext(){
+		final DataInputStream ret = new DataInputStream(in);
+		PipedOutputStream out = new PipedOutputStream(in);
+		driver.executeAgent(null,response,new UOSMessageContext(){
 			public DataInputStream getDataInputStream() {
-				return new DataInputStream(in);
+				return ret;
 			}
-		};
+		});
+		new ObjectOutputStream(out).writeObject(a);
 	}
 }
 
 class NonAgent implements Serializable{
 	private static final long serialVersionUID = -6537712082673542107L;
+	public void run(Gateway gateway){
+		AgentSpy.count++;
+	}
 }
 
 class AgentSpy{
@@ -115,7 +146,7 @@ class AgentSpy{
 	static MyAgent lastAgent = null;
 }
 
-class MyAgent implements Agent{
+class MyAgent extends Agent{
 	private static final long serialVersionUID = -8267793981973238896L;
 	public Integer sleepTime = 0;
 	public Gateway gateway;
@@ -127,3 +158,4 @@ class MyAgent implements Agent{
 		AgentSpy.count++;
 	}
 }
+
