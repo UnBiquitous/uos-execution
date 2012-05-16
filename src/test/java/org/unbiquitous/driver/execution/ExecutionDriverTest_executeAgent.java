@@ -2,9 +2,13 @@ package org.unbiquitous.driver.execution;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.junit.matchers.JUnitMatchers.*;
 
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -12,6 +16,7 @@ import java.io.Serializable;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.unbiquitous.driver.execution.ExecutionDriver;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
@@ -108,6 +113,56 @@ public class ExecutionDriverTest_executeAgent {
 	//TODO? Must the agent have a lifecycle?
 	//TODO? Do we need to control the execution of the Agent.
 	
+	// Tests for internal method for finding classes
+	@Test public void findsAClassInTheSourceFolder() throws Exception{
+		String pkgRoot = "org/unbiquitous/driver/execution/";
+		String currentDir = System.getProperty("user.dir") ;
+		String rootPath = currentDir+"/target/test-classes/"+pkgRoot;
+		
+		InputStream dummyClass = driver.findClass(DummyAgent.class);
+		InputStream myClass = driver.findClass(MyAgent.class);
+		
+		FileInputStream expected_dummy = new FileInputStream(rootPath + "DummyAgent.class");
+		assertStream(expected_dummy, dummyClass);
+		
+		FileInputStream expected = new FileInputStream(rootPath + "MyAgent.class");
+		assertStream(expected, myClass);
+	}
+
+	@Test public void MustNotConfuseHomonymsClasess() throws Exception{
+		String pkgRoot = "org/unbiquitous/driver/execution/";
+		String currentDir = System.getProperty("user.dir") ;
+		String rootPath = currentDir+"/target/test-classes/"+pkgRoot;
+		
+		FileInputStream expected_dummy = new FileInputStream(rootPath + "DummyAgent.class");
+		assertStream(expected_dummy, driver.findClass(DummyAgent.class));
+		
+		FileInputStream expected_other = new FileInputStream(rootPath + "dummy/DummyAgent.class");
+		assertStream(expected_other, driver.findClass(org.unbiquitous.driver.execution.dummy.DummyAgent.class));
+		
+	}
+	
+	@Test public void mustFindAClassInsideAJar() throws Exception{
+		String currentDir = System.getProperty("user.dir") ;
+		String rootPath = currentDir+"/target/test-classes/";
+		
+		FileInputStream expected_mockito = new FileInputStream(rootPath + "Mockito_class");
+		assertStream(expected_mockito, driver.findClass(Mockito.class));
+	}
+	
+	private void assertStream(InputStream expected, InputStream dummyClass)
+			throws IOException {
+		if (expected == dummyClass) return;
+		if (expected == null) fail("Returned stream was not null.");
+		if (dummyClass == null) fail("Returned stream was null.");
+		byte b;
+		long count = 0; 
+		while ((b = (byte)expected.read()) != -1){
+			assertEquals("Failed on byte "+count,b,(byte)dummyClass.read());
+			count ++;
+		}
+	}
+	
 	static interface EventuallyAssert{
 		boolean assertion();
 	}
@@ -159,3 +214,8 @@ class MyAgent extends Agent{
 	}
 }
 
+class DummyAgent extends Agent{
+	private static final long serialVersionUID = 6755442789702096965L;
+
+	public void run(Gateway gateway) {}
+}
