@@ -9,6 +9,9 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -159,5 +162,23 @@ public class ExecutionDriver implements UosDriver {
 			return entry;
 	    }
 		return null;
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected Object load(String className, File classDir) throws Exception {
+		URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+		Class sysclass = URLClassLoader.class;
+
+		try {
+			Method method = sysclass.getDeclaredMethod("addURL", URL.class);
+			method.setAccessible(true);
+			method.invoke(sysloader, new Object[] { classDir.toURI().toURL() });
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw new IOException(
+					"Error, could not add URL to system classloader");
+		}// end try catch
+		Class c = Class.forName(className);
+		return c.newInstance();
 	}
 }

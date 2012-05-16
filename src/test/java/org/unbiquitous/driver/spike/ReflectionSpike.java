@@ -12,15 +12,21 @@ import java.io.PipedOutputStream;
 
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class ReflectionSpike {
 
+	@Rule
+    public TemporaryFolder folder= new TemporaryFolder();
 	
 	
 	@Test public void compileAndRun() throws Exception{
+		File tmpDir = folder.getRoot();
+		assertEquals(0, tmpDir.listFiles().length);
 		JavaSourceCompiler javaSourceCompiler = new JavaSourceCompilerImpl();
-	    JavaSourceCompiler.CompilationUnit compilationUnit = javaSourceCompiler.createCompilationUnit();
+	    JavaSourceCompiler.CompilationUnit compilationUnit = javaSourceCompiler.createCompilationUnit(tmpDir);
 	    String javaSourceCode =  "package org.unbiquitous.driver.spike;\n" +
 	      "public class Foo implements org.unbiquitous.driver.spike.I {\n" +
 	      "        public String m(Integer i) {\n" +
@@ -32,6 +38,16 @@ public class ReflectionSpike {
 	    @SuppressWarnings("rawtypes")
 		Class fooClass = classLoader.loadClass("org.unbiquitous.driver.spike.Foo");
 	    assertEquals("Hello World 10",((I)fooClass.newInstance()).m(10));
+	    System.out.println(tmpDir.listFiles());
+	    assertEquals(0, tmpDir.listFiles().length);
+	    javaSourceCompiler.persistCompiledClasses(compilationUnit);
+	    assertEquals(1, tmpDir.listFiles().length);
+	    for(File f : tmpDir.listFiles())
+	    	System.out.println(f.getPath());
+	    try {
+			Class.forName("org.unbiquitous.driver.spike.Foo");
+			fail("Should not be on default classloader");
+		} catch (Exception e) {}
 	}
 	
 	

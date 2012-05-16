@@ -13,9 +13,14 @@ import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 
+import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
+import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.unbiquitous.driver.execution.ExecutionDriver;
 
@@ -25,13 +30,18 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class ExecutionDriverTest_executeAgent {
 
+	@Rule
+    public TemporaryFolder folder= new TemporaryFolder();
+	
 	private ExecutionDriver driver;
 	private ServiceResponse response;
+	
+	private File tempDir;
 	
 	@Before public void setUp(){
 		driver = new ExecutionDriver();
 		response = new ServiceResponse();
-		
+		tempDir = folder.getRoot();
 	}
 	
 	@Test public void runTheCalledAgentOnAThread() throws Exception{
@@ -152,6 +162,34 @@ public class ExecutionDriverTest_executeAgent {
 	
 	@Test public void mustNotSendJDKClasses() throws Exception{
 		assertStream(null, driver.findClass(Integer.class));
+	}
+	
+	// Tests for internal method for loading a class
+	@Test public void mustLoadAClassFromStream() throws Exception{
+		String source = 
+				"package org.unbiquitous.driver.execution;"
+			+	"public class Foo extends org.unbiquitous.driver.execution.MyAgent {"
+			+	"public int plusOne(Integer i){"
+			+	"	return i+1;"
+			+	"}"
+			+	"}";
+		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
+	    JavaSourceCompiler.CompilationUnit unit = compiler.createCompilationUnit(tempDir);
+	    unit.addJavaSource("org.unbiquitous.driver.execution.Foo", source);
+	    compiler.compile(unit);
+	    assertEquals(0, tempDir.listFiles().length);
+	    compiler.persistCompiledClasses(unit);
+	    assertEquals(1, tempDir.listFiles().length);
+
+	    Object o = driver.load("org.unbiquitous.driver.execution.Foo",tempDir);
+	    
+	    Method plusOne = o.getClass().getMethod("plusOne", Integer.class);
+		assertEquals(2,plusOne.invoke(o, 1));
+		
+		Method run = o.getClass().getMethod("run", Gateway.class);
+		int before = AgentSpy.count;
+		run.invoke(o, new Object[]{null});
+		assertEquals((Integer)(before+1),AgentSpy.count);
 	}
 	
 	private void assertStream(InputStream expected, InputStream dummyClass)
