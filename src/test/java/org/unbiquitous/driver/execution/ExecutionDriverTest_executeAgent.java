@@ -150,6 +150,10 @@ public class ExecutionDriverTest_executeAgent {
 		assertStream(expected_mockito, driver.findClass(Mockito.class));
 	}
 	
+	@Test public void mustNotSendJDKClasses() throws Exception{
+		assertStream(null, driver.findClass(Integer.class));
+	}
+	
 	private void assertStream(InputStream expected, InputStream dummyClass)
 			throws IOException {
 		if (expected == dummyClass) return;

@@ -99,8 +99,7 @@ public class ExecutionDriver implements UosDriver {
 						ObjectInputStream reader = new ObjectInputStream(stream);
 							o = reader.readObject();
 					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error(e);
 					}
 					if (o instanceof Agent){
 						final Agent a = ((Agent)o);
@@ -156,7 +155,7 @@ public class ExecutionDriver implements UosDriver {
 				File found = findFile(classname,child);
 				if (found != null)	return found;
 			}
-		}else if (entry.getPath().endsWith(classname+".class")){ //FIXME: lots of problems here
+		}else if (entry.getPath().endsWith(classname+".class")){
 			return entry;
 	    }
 		return null;
