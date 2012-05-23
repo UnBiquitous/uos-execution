@@ -62,6 +62,8 @@ public class ExecutionDriverTest_executeAgent {
 			});
 	}
 
+	//TODO: runTheCalledAgentFromNewJavaOnAThread
+	
 	//FIXME: How to test this?
 	@Test public void dontAcceptANonAgentAgent() throws Exception{
 		NonAgent a = new NonAgent();
@@ -166,6 +168,8 @@ public class ExecutionDriverTest_executeAgent {
 	
 	// Tests for internal method for loading a class
 	@Test public void mustLoadAClassFromStream() throws Exception{
+		
+		//create source
 		String source = 
 				"package org.unbiquitous.driver.execution;"
 			+	"public class Foo extends org.unbiquitous.driver.execution.MyAgent {"
@@ -173,15 +177,11 @@ public class ExecutionDriverTest_executeAgent {
 			+	"	return i+1;"
 			+	"}"
 			+	"}";
-		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
-	    JavaSourceCompiler.CompilationUnit unit = compiler.createCompilationUnit(tempDir);
-	    unit.addJavaSource("org.unbiquitous.driver.execution.Foo", source);
-	    compiler.compile(unit);
-	    assertEquals(0, tempDir.listFiles().length);
-	    compiler.persistCompiledClasses(unit);
-	    assertEquals(1, tempDir.listFiles().length);
+		
+		File origin = compile(source);
 
-	    Object o = driver.load("org.unbiquitous.driver.execution.Foo",tempDir);
+	    //load
+	    Object o = driver.load("org.unbiquitous.driver.execution.Foo",new FileInputStream(origin));
 	    
 	    Method plusOne = o.getClass().getMethod("plusOne", Integer.class);
 		assertEquals(2,plusOne.invoke(o, 1));
@@ -190,6 +190,25 @@ public class ExecutionDriverTest_executeAgent {
 		int before = AgentSpy.count;
 		run.invoke(o, new Object[]{null});
 		assertEquals((Integer)(before+1),AgentSpy.count);
+	}
+
+	private File compile(String source) {
+		//create origin folder
+		File origin = new File(tempDir.getPath()+"/origin/");
+		origin.mkdir();
+		//compile
+		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
+	    JavaSourceCompiler.CompilationUnit unit = compiler.createCompilationUnit(origin);
+	    unit.addJavaSource("org.unbiquitous.driver.execution.Foo", source);
+	    compiler.compile(unit);
+	    assertEquals(0, origin.listFiles().length);
+	    compiler.persistCompiledClasses(unit);
+	    assertEquals(1, origin.listFiles().length);
+	    File f = origin;
+	    while (!f.isFile()){
+	    	f = f.listFiles()[0];
+	    }
+		return f;
 	}
 	
 	private void assertStream(InputStream expected, InputStream dummyClass)

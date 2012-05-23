@@ -5,11 +5,15 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -164,21 +168,40 @@ public class ExecutionDriver implements UosDriver {
 		return null;
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected Object load(String className, File classDir) throws Exception {
-		URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-		Class sysclass = URLClassLoader.class;
-
-		try {
-			Method method = sysclass.getDeclaredMethod("addURL", URL.class);
-			method.setAccessible(true);
-			method.invoke(sysloader, new Object[] { classDir.toURI().toURL() });
-		} catch (Throwable t) {
-			t.printStackTrace();
-			throw new IOException(
-					"Error, could not add URL to system classloader");
-		}// end try catch
+	@SuppressWarnings("rawtypes")
+	protected Object load(String className, InputStream clazz) throws Exception {
+		File classDir = createClassFileDir(className, clazz);
+		
+		addPathToClassLoader(classDir);
+		
 		Class c = Class.forName(className);
 		return c.newInstance();
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void addPathToClassLoader(File classDir)
+			throws NoSuchMethodException, IllegalAccessException,
+			InvocationTargetException, MalformedURLException {
+		URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+		Class sysclass = URLClassLoader.class;
+		Method method = sysclass.getDeclaredMethod("addURL", URL.class);
+		method.setAccessible(true);
+		method.invoke(sysloader, new Object[] { classDir.toURI().toURL() });
+	}
+
+	private File createClassFileDir(String className, InputStream clazz)
+			throws IOException, FileNotFoundException {
+		File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime());
+		tempDir.delete(); // Delete temp file
+		tempDir.mkdir();  // and transform it to a directory
+		
+		File classFile = new File(tempDir.getPath()+"/"+className.replace('.', '/')+".class");
+		classFile.getParentFile().mkdirs();
+		classFile.createNewFile();
+		FileOutputStream writer = new FileOutputStream(classFile);
+		int b = 0;
+		while((b = clazz.read()) != -1) writer.write(b);
+		writer.close();
+		return tempDir;
 	}
 }
