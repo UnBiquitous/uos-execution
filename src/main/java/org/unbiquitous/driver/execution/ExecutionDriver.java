@@ -97,7 +97,7 @@ public class ExecutionDriver implements UosDriver {
 				response.setError("No Data Stream, containing agent, was found.");
 				return;
 			}
-			final DataInputStream stream = ctx.getDataInputStream();
+			final DataInputStream agent = ctx.getDataInputStream();
 			final DataInputStream clazz;
 			final String className = call.getParameter("class");
 			if (className != null){
@@ -105,72 +105,92 @@ public class ExecutionDriver implements UosDriver {
 			}else{
 				clazz = null;
 			}
-			new Thread(){
-				public void run() {
-					Object o = null;
-					try {
-						if (className != null){
-							while (clazz.available() == 0){}
-							load(className, clazz);
-						}
-						while (stream.available() == 0){}
-						ObjectInputStream reader = new ObjectInputStream(stream);
-							o = reader.readObject();
-					} catch (Exception e) {
-						logger.error(e);
-					}
-					if (o instanceof Agent){
-						final Agent a = ((Agent)o);
-						a.run(gateway);
-					}else{
-						//response.setError("The informed Agent is not a valid one.");
-					}
-					};
-			}.start();
+			new Thread(new AgentHandler(className, clazz, agent)).start();
 		} catch (Throwable e) {
 			response.setError("Something unexpected happened.");
 			e.printStackTrace();
 		}
 	}
 
+	class AgentHandler implements Runnable{
+		private String className;
+		private DataInputStream clazz;
+		private DataInputStream agent;
+		
+		public AgentHandler(String className, DataInputStream clazz,DataInputStream agent) {
+			this.className = className;
+			this.clazz = clazz;
+			this.agent = agent;
+		}
+
+		public void run() {
+			try {
+				if (className != null){
+					while (clazz.available() == 0){}
+					load(className, clazz);
+				}
+				while (agent.available() == 0){}
+				ObjectInputStream reader = new ObjectInputStream(agent);
+				Object o = reader.readObject();
+				if (o instanceof Agent){
+					((Agent)o).run(gateway);
+				}else{
+					//response.setError("The informed Agent is not a valid one.");
+				}
+			} catch (Exception e) {
+				logger.error(e);
+			}
+		};
+	}
+	
 	protected InputStream findClass(Class clazz) throws IOException {
-		String cpath = clazz.getName().replace('.', File.separatorChar);
-		for (String classpathEntry : System.getProperty("java.class.path").split(System.getProperty("path.separator"))) {
-			File entry = new File(classpathEntry);
+		String className = clazz.getName().replace('.', File.separatorChar);
+		for (String entryPath : System.getProperty("java.class.path").split(System.getProperty("path.separator"))) {
+			File entry = new File(entryPath);
 			if (entry.isDirectory()){
-				File found = findFile(cpath, entry);
+				File found = findClassFileOnDir(className, entry);
 				if (found != null)	return new FileInputStream(found);
 			}else if (entry.getName().endsWith(".jar")) {
-				final int BUFFER = 2048;
-		         FileInputStream fis = new FileInputStream(entry);
-		         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fis));
-		         ZipEntry j;
-		         List<Byte> bytes = new ArrayList<Byte>();
-		         while((j = zis.getNextEntry()) != null) {
-		            byte data[] = new byte[BUFFER];
-		            int count = 0;
-		            while ((count = zis.read(data, 0, BUFFER)) != -1) {
-		            	if (j.getName().endsWith(cpath+".class")){
-		            		for (int i = 0 ; i < count ; i++)
-		            			bytes.add(data[i]);
-		            	}
-		            }
-		            if (j.getName().endsWith(cpath+".class")){
-		            	byte[] buf = new byte[bytes.size()];
-		            	for (int i = 0; i < bytes.size(); i++) buf[i] = bytes.get(i);
-		            	return new ByteArrayInputStream(buf);
-		            }
-		         }
-		         zis.close();
+				InputStream result = findClassFileOnAJar(className, entry);
+				if (result != null) {
+					return result;
+				}
 			}
 		}
 		return null;
 	}
 
-	private File findFile(String classname, File entry) throws IOException{
+	private InputStream findClassFileOnAJar(String className, File jar) throws FileNotFoundException, IOException {
+		ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(jar)));
+		ZipEntry j;
+		List<Byte> bytes = new ArrayList<Byte>();
+		while ((j = zis.getNextEntry()) != null) {
+			final int BUFFER = 2048;
+			byte data[] = new byte[BUFFER];
+			int count = 0;
+			while ((count = zis.read(data, 0, BUFFER)) != -1) {
+				if (j.getName().endsWith(className + ".class")) {
+					for (int i = 0; i < count; i++)
+						bytes.add(data[i]);
+				}
+			}
+			if (!bytes.isEmpty()) {
+				byte[] buf = new byte[bytes.size()];
+				for (int i = 0; i < bytes.size(); i++)
+					buf[i] = bytes.get(i);
+				zis.close();
+				return new ByteArrayInputStream(buf);
+			}
+
+		}
+		zis.close();
+		return null;
+	}
+
+	private File findClassFileOnDir(String classname, File entry) throws IOException{
 		if (entry.isDirectory()){
 			for (File child : entry.listFiles()){
-				File found = findFile(classname,child);
+				File found = findClassFileOnDir(classname,child);
 				if (found != null)	return found;
 			}
 		}else if (entry.getPath().endsWith(classname+".class")){

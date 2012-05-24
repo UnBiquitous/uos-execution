@@ -78,7 +78,7 @@ public class ExecutionDriverTest_executeAgent {
 			+	"	AgentSpy.count+=17;"
 			+	"	}"
 			+	"}";
-		String clazz = "org.unbiquitous.driver.execution.Foo2";
+		final String clazz = "org.unbiquitous.driver.execution.Foo2";
 		
 		File origin = compile(source,clazz);
 		
@@ -89,8 +89,13 @@ public class ExecutionDriverTest_executeAgent {
 		
 		execute(a,new FileInputStream(origin), clazz);
 		
-		Class.forName(clazz); // Must have the class on classpath
-		
+		assertEventuallyTrue("Must have the class on classpath eventually",1000, new EventuallyAssert(){
+			public boolean assertion(){
+				try {
+					Class.forName(clazz); return true;
+				} catch (Exception e) { return false;}
+			}
+		});
 		assertNull("No error should be found.",response.getError());
 		assertEquals((Integer)(before),AgentSpy.count);
 		assertEventuallyTrue("Must increment the SpyCount eventually", 
