@@ -2,7 +2,6 @@ package org.unbiquitous.driver.execution;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.junit.matchers.JUnitMatchers.*;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -26,6 +25,7 @@ import org.unbiquitous.driver.execution.ExecutionDriver;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;
+import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class ExecutionDriverTest_executeAgent {
@@ -61,8 +61,45 @@ public class ExecutionDriverTest_executeAgent {
 				}
 			});
 	}
-
-	//TODO: runTheCalledAgentFromNewJavaOnAThread
+	//TODO: This test isn't quite as i wanted. I needed to send a serialized object 
+	//		of the same type of the code i'm sending
+	//		How can i do that?
+	@Test public void runTheCalledAgentFromNewJavaCodeOnAThread() throws Exception{
+		MyAgent a = new MyAgent();
+		a.sleepTime = 1000;
+		
+		final Integer before = AgentSpy.count;
+		
+		String source = 
+				"package org.unbiquitous.driver.execution;"
+			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
+			+	"public class Foo2 extends org.unbiquitous.driver.execution.Agent {"
+			+	"public void run(Gateway gateway){"
+			+	"	AgentSpy.count+=17;"
+			+	"	}"
+			+	"}";
+		String clazz = "org.unbiquitous.driver.execution.Foo2";
+		
+		File origin = compile(source,clazz);
+		
+		try {
+			Class.forName(clazz);
+			fail("Must no have the class on classpath");
+		} catch (Exception e) {}
+		
+		execute(a,new FileInputStream(origin), clazz);
+		
+		Class.forName(clazz); // Must have the class on classpath
+		
+		assertNull("No error should be found.",response.getError());
+		assertEquals((Integer)(before),AgentSpy.count);
+		assertEventuallyTrue("Must increment the SpyCount eventually", 
+				a.sleepTime + 1000, new EventuallyAssert(){
+				public boolean assertion(){
+					return (Integer)(before+1) == AgentSpy.count;
+				}
+			});
+	}
 	
 	//FIXME: How to test this?
 	@Test public void dontAcceptANonAgentAgent() throws Exception{
@@ -169,7 +206,6 @@ public class ExecutionDriverTest_executeAgent {
 	// Tests for internal method for loading a class
 	@Test public void mustLoadAClassFromStream() throws Exception{
 		
-		//create source
 		String source = 
 				"package org.unbiquitous.driver.execution;"
 			+	"public class Foo extends org.unbiquitous.driver.execution.MyAgent {"
@@ -178,9 +214,9 @@ public class ExecutionDriverTest_executeAgent {
 			+	"}"
 			+	"}";
 		
-		File origin = compile(source);
+		String clazz = "org.unbiquitous.driver.execution.Foo";
+		File origin = compile(source,clazz);
 
-	    //load
 	    Object o = driver.load("org.unbiquitous.driver.execution.Foo",new FileInputStream(origin));
 	    
 	    Method plusOne = o.getClass().getMethod("plusOne", Integer.class);
@@ -192,14 +228,14 @@ public class ExecutionDriverTest_executeAgent {
 		assertEquals((Integer)(before+1),AgentSpy.count);
 	}
 
-	private File compile(String source) {
+	private File compile(String source, String clazz) {
 		//create origin folder
 		File origin = new File(tempDir.getPath()+"/origin/");
 		origin.mkdir();
 		//compile
 		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
 	    JavaSourceCompiler.CompilationUnit unit = compiler.createCompilationUnit(origin);
-	    unit.addJavaSource("org.unbiquitous.driver.execution.Foo", source);
+	    unit.addJavaSource(clazz, source);
 	    compiler.compile(unit);
 	    assertEquals(0, origin.listFiles().length);
 	    compiler.persistCompiledClasses(unit);
@@ -238,15 +274,27 @@ public class ExecutionDriverTest_executeAgent {
 	}
 	
 	private void execute(Serializable a) throws Exception{
-		final PipedInputStream in = new PipedInputStream();
-		final DataInputStream ret = new DataInputStream(in);
-		PipedOutputStream out = new PipedOutputStream(in);
-		driver.executeAgent(null,response,new UOSMessageContext(){
-			public DataInputStream getDataInputStream() {
-				return ret;
+		execute(a,null, null);
+	}
+	
+	private void execute(Serializable a, final InputStream code, String clazz) throws Exception{
+		final PipedInputStream inAgent = new PipedInputStream();
+		final DataInputStream retAgent = new DataInputStream(inAgent);
+		PipedOutputStream outAgent = new PipedOutputStream(inAgent);
+
+		driver.executeAgent(new ServiceCall().addParameter("class", clazz)
+								,response,new UOSMessageContext(){
+			public DataInputStream getDataInputStream() {	return retAgent;	}
+			public DataInputStream getDataInputStream(int index) {
+				if (index == 0){
+					return retAgent;
+				}else if (index == 1){
+					return new DataInputStream(code);
+				}
+				return null;
 			}
 		});
-		new ObjectOutputStream(out).writeObject(a);
+		new ObjectOutputStream(outAgent).writeObject(a);
 	}
 }
 
@@ -269,7 +317,6 @@ class MyAgent extends Agent{
 	public void run(Gateway gateway){
 		AgentSpy.lastAgent = this;
 		this.gateway = gateway; 
-//		/AgentSpy.count++;
 		try {	Thread.sleep(sleepTime);	} catch (Exception e) {}
 		AgentSpy.count++;
 	}

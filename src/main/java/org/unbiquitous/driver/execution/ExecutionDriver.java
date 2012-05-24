@@ -98,10 +98,21 @@ public class ExecutionDriver implements UosDriver {
 				return;
 			}
 			final DataInputStream stream = ctx.getDataInputStream();
+			final DataInputStream clazz;
+			final String className = call.getParameter("class");
+			if (className != null){
+				clazz = ctx.getDataInputStream(1);
+			}else{
+				clazz = null;
+			}
 			new Thread(){
 				public void run() {
 					Object o = null;
 					try {
+						if (className != null){
+							while (clazz.available() == 0){}
+							load(className, clazz);
+						}
 						while (stream.available() == 0){}
 						ObjectInputStream reader = new ObjectInputStream(stream);
 							o = reader.readObject();
