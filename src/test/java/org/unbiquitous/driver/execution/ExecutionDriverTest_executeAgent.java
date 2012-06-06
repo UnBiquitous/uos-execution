@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
@@ -37,11 +38,13 @@ public class ExecutionDriverTest_executeAgent {
 	private ServiceResponse response;
 	
 	private File tempDir;
+	private String currentDir;
 	
 	@Before public void setUp(){
 		driver = new ExecutionDriver();
 		response = new ServiceResponse();
 		tempDir = folder.getRoot();
+		currentDir = System.getProperty("user.dir") ;
 	}
 	
 	@Test public void runTheCalledAgentOnAThread() throws Exception{
@@ -170,7 +173,6 @@ public class ExecutionDriverTest_executeAgent {
 	// Tests for internal method for finding classes
 	@Test public void findsAClassInTheSourceFolder() throws Exception{
 		String pkgRoot = "org/unbiquitous/driver/execution/";
-		String currentDir = System.getProperty("user.dir") ;
 		String rootPath = currentDir+"/target/test-classes/"+pkgRoot;
 		
 		InputStream dummyClass = driver.findClass(DummyAgent.class);
@@ -185,7 +187,6 @@ public class ExecutionDriverTest_executeAgent {
 
 	@Test public void MustNotConfuseHomonymsClasess() throws Exception{
 		String pkgRoot = "org/unbiquitous/driver/execution/";
-		String currentDir = System.getProperty("user.dir") ;
 		String rootPath = currentDir+"/target/test-classes/"+pkgRoot;
 		
 		FileInputStream expected_dummy = new FileInputStream(rootPath + "DummyAgent.class");
@@ -197,7 +198,6 @@ public class ExecutionDriverTest_executeAgent {
 	}
 	
 	@Test public void mustFindAClassInsideAJar() throws Exception{
-		String currentDir = System.getProperty("user.dir") ;
 		String rootPath = currentDir+"/target/test-classes/";
 		
 		FileInputStream expected_mockito = new FileInputStream(rootPath + "Mockito_class");
@@ -206,6 +206,15 @@ public class ExecutionDriverTest_executeAgent {
 	
 	@Test public void mustNotSendJDKClasses() throws Exception{
 		assertStream(null, driver.findClass(Integer.class));
+		
+		//FIXME remover
+		File fui = new File(currentDir+"/Fui_class");
+		fui.createNewFile();
+		FileOutputStream writer = new FileOutputStream(fui);
+		InputStream clazz = driver.findClass(Fui.class);
+		int b = 0;
+		while((b = clazz.read()) != -1) writer.write(b);
+		writer.close();
 	}
 	
 	// Tests for internal method for loading a class
@@ -332,3 +341,4 @@ class DummyAgent extends Agent{
 
 	public void run(Gateway gateway) {}
 }
+

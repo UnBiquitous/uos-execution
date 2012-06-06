@@ -3,16 +3,20 @@ package org.unbiquitous.driver.spike;
 import static org.mockito.Mockito.*;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.List;
 import java.util.ListResourceBundle;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
@@ -37,17 +41,18 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 public class MoveSpike {
 
 	public static void main(String[] args) throws Exception{
+		
 		HelloAgent hello = new HelloAgent();
 //		hello.getClass().getResource(null);
-//		//move();
+		move();
 		System.out.println(hello.getClass()+"\t>>\t"+findClass(hello));
 		System.out.println(new ExecutionDriver().getClass()+"\t>>\t"+findClass(new ExecutionDriver()));
 		System.out.println(new UOSApplicationContext().getClass()+"\t>>\t"+findClass(new UOSApplicationContext()));
 		System.out.println(new Mockito().getClass()+"\t>>\t"+findClass(new Mockito()));
 		System.out.println(Class.class.getResourceAsStream(new Mockito().getClass().getName().replace('.', File.separatorChar)+".class"));
-//		System.out.println(new StringBuffer().getClass()+"\t>>\t"+findClass(new StringBuffer()));
+		System.out.println(new StringBuffer().getClass()+"\t>>\t"+findClass(new StringBuffer()));
 	}
-
+	
 	private static String findClass(Object a) throws FileNotFoundException, IOException{
 		for (String classpathEntry : System.getProperty("java.class.path").split(System.getProperty("path.separator"))) {
 			File entry = new File(classpathEntry);
@@ -161,15 +166,20 @@ public class MoveSpike {
 	protected static void moveTo(Agent a, UpDevice to, Gateway g){
 		
 		ServiceCall move = new ServiceCall("uos.ExecutionDriver", "executeAgent");
-		move.setChannels(1);
+		move.setChannels(2);
 		move.setServiceType(ServiceType.STREAM);
+		move.addParameter("class", a.getClass().getName());
 		
 		try {
 			ServiceResponse r = g.callService(to, move);
-			ObjectOutputStream writer = new ObjectOutputStream(r.getMessageContext().getDataOutputStream());
-			writer.writeObject(a);
+			ObjectOutputStream writer_agent = new ObjectOutputStream(r.getMessageContext().getDataOutputStream(0));
+			writer_agent.writeObject(a);
+			ObjectOutputStream writer_class = new ObjectOutputStream(r.getMessageContext().getDataOutputStream(0));
+			InputStream clazz= new FileInputStream(findClass(a));
+			int b;
+			while((b = clazz.read())!= -1)
+				writer_class.write(b);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

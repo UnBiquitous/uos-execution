@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -18,8 +17,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -35,9 +32,33 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpService.Paramet
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
-import com.sun.org.apache.bcel.internal.classfile.ClassParser;
-import com.sun.org.apache.bcel.internal.classfile.JavaClass;
-
+/**
+ * This driver enables Code Mobility to the middleware.
+ * Using it the Execution Capability of a Device is shared as a resource
+ * for others to take advantge.
+ * 
+ * Its services are:
+ * 
+ * {@link #remoteExecution(ServiceCall, ServiceResponse, UOSMessageContext)}
+ * 
+ * This service expects a Lua script through the "code" parameter. Any 
+ * other parameter is available for the execution of the scripted code.
+ * Access to the parameters is done through the <code>get(<key>)</code> function.
+ * The response parameters are set using the <code>set(<key>)</code> function.
+ * 
+ * {@link #executeAgent(ServiceCall, ServiceResponse, UOSMessageContext)}
+ * 
+ * This service receives a Serialized {@link Agent} on channel 0 and resumes its 
+ * execution. No other class must be transfered, aside from the Agent itself, 
+ * uOS classes and JDK classes. Any other class should be transient to the object.
+ * 
+ * In case of the Agent to be of a class not present on the targeted device.
+ * The class can be transfered using the channel 1 and informing the class name
+ * through the "class" parameter
+ * 
+ * @author Fabricio Nogueira Buzeto
+ *
+ */
 public class ExecutionDriver implements UosDriver {
 
 	private static final Logger logger = Logger.getLogger(ExecutionDriver.class);
