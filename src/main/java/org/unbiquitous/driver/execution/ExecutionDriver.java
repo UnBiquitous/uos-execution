@@ -67,11 +67,13 @@ public class ExecutionDriver implements UosDriver {
 
 	private UpDriver driver;
 	private Gateway gateway;
+	private ClassToolbox util;
 	
 	public ExecutionDriver(){
 		driver = new UpDriver("uos.ExecutionDriver");
 		driver.addService("remoteExecution").addParameter("code", ParameterType.MANDATORY);
 		driver.addService("executeAgent");
+		util = new ClassToolbox(); //TODO: should be able to inject
 	}
 	
 	public UpDriver getDriver() {	return driver;	}
@@ -121,6 +123,9 @@ public class ExecutionDriver implements UosDriver {
 			final DataInputStream agent = ctx.getDataInputStream();
 			final DataInputStream clazz;
 			final String className = call.getParameter("class");
+			//TODO: should receive the size of these guys so i could avoid ... 
+			//		caching problems. And even could check if the received data
+			//		is in accordance.
 			if (className != null){
 				clazz = ctx.getDataInputStream(1);
 			}else{
@@ -148,7 +153,7 @@ public class ExecutionDriver implements UosDriver {
 			try {
 				if (className != null){
 					while (clazz.available() == 0){}
-					load(className, clazz);
+					util.load(className, clazz);
 				}
 				while (agent.available() == 0){}
 				ObjectInputStream reader = new ObjectInputStream(agent);
@@ -164,96 +169,4 @@ public class ExecutionDriver implements UosDriver {
 		};
 	}
 	
-	protected InputStream findClass(Class clazz) throws IOException {
-		String className = clazz.getName().replace('.', File.separatorChar);
-		for (String entryPath : System.getProperty("java.class.path").split(System.getProperty("path.separator"))) {
-			File entry = new File(entryPath);
-			if (entry.isDirectory()){
-				File found = findClassFileOnDir(className, entry);
-				if (found != null)	return new FileInputStream(found);
-			}else if (entry.getName().endsWith(".jar")) {
-				InputStream result = findClassFileOnAJar(className, entry);
-				if (result != null) {
-					return result;
-				}
-			}
-		}
-		return null;
-	}
-
-	private InputStream findClassFileOnAJar(String className, File jar) throws FileNotFoundException, IOException {
-		ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(jar)));
-		ZipEntry j;
-		List<Byte> bytes = new ArrayList<Byte>();
-		while ((j = zis.getNextEntry()) != null) {
-			final int BUFFER = 2048;
-			byte data[] = new byte[BUFFER];
-			int count = 0;
-			while ((count = zis.read(data, 0, BUFFER)) != -1) {
-				if (j.getName().endsWith(className + ".class")) {
-					for (int i = 0; i < count; i++)
-						bytes.add(data[i]);
-				}
-			}
-			if (!bytes.isEmpty()) {
-				byte[] buf = new byte[bytes.size()];
-				for (int i = 0; i < bytes.size(); i++)
-					buf[i] = bytes.get(i);
-				zis.close();
-				return new ByteArrayInputStream(buf);
-			}
-
-		}
-		zis.close();
-		return null;
-	}
-
-	private File findClassFileOnDir(String classname, File entry) throws IOException{
-		if (entry.isDirectory()){
-			for (File child : entry.listFiles()){
-				File found = findClassFileOnDir(classname,child);
-				if (found != null)	return found;
-			}
-		}else if (entry.getPath().endsWith(classname+".class")){
-			return entry;
-	    }
-		return null;
-	}
-	
-	@SuppressWarnings("rawtypes")
-	protected Object load(String className, InputStream clazz) throws Exception {
-		File classDir = createClassFileDir(className, clazz);
-		
-		addPathToClassLoader(classDir);
-		
-		Class c = Class.forName(className);
-		return c.newInstance();
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void addPathToClassLoader(File classDir)
-			throws NoSuchMethodException, IllegalAccessException,
-			InvocationTargetException, MalformedURLException {
-		URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-		Class sysclass = URLClassLoader.class;
-		Method method = sysclass.getDeclaredMethod("addURL", URL.class);
-		method.setAccessible(true);
-		method.invoke(sysloader, new Object[] { classDir.toURI().toURL() });
-	}
-
-	private File createClassFileDir(String className, InputStream clazz)
-			throws IOException, FileNotFoundException {
-		File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime());
-		tempDir.delete(); // Delete temp file
-		tempDir.mkdir();  // and transform it to a directory
-		
-		File classFile = new File(tempDir.getPath()+"/"+className.replace('.', '/')+".class");
-		classFile.getParentFile().mkdirs();
-		classFile.createNewFile();
-		FileOutputStream writer = new FileOutputStream(classFile);
-		int b = 0;
-		while((b = clazz.read()) != -1) writer.write(b);
-		writer.close();
-		return tempDir;
-	}
 }

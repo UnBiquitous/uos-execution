@@ -109,6 +109,27 @@ public class ExecutionDriverTest_executeAgent {
 			});
 	}
 	
+	//TODO: duplicate with ClassToolbox
+	private File compile(String source, String clazz) {
+		// create origin folder
+		File origin = new File(tempDir.getPath() + "/origin/");
+		origin.mkdir();
+		// compile
+		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
+		JavaSourceCompiler.CompilationUnit unit = compiler
+				.createCompilationUnit(origin);
+		unit.addJavaSource(clazz, source);
+		compiler.compile(unit);
+		assertEquals(0, origin.listFiles().length);
+		compiler.persistCompiledClasses(unit);
+		assertEquals(1, origin.listFiles().length);
+		File f = origin;
+		while (!f.isFile()) {
+			f = f.listFiles()[0];
+		}
+		return f;
+	}
+	
 	//FIXME: How to test this?
 	@Test public void dontAcceptANonAgentAgent() throws Exception{
 		NonAgent a = new NonAgent();
@@ -169,110 +190,6 @@ public class ExecutionDriverTest_executeAgent {
 	//TODO: Agent must be able to request to move itself
 	//TODO? Must the agent have a lifecycle?
 	//TODO? Do we need to control the execution of the Agent.
-	
-	// Tests for internal method for finding classes
-	@Test public void findsAClassInTheSourceFolder() throws Exception{
-		String pkgRoot = "org/unbiquitous/driver/execution/";
-		String rootPath = currentDir+"/target/test-classes/"+pkgRoot;
-		
-		InputStream dummyClass = driver.findClass(DummyAgent.class);
-		InputStream myClass = driver.findClass(MyAgent.class);
-		
-		FileInputStream expected_dummy = new FileInputStream(rootPath + "DummyAgent.class");
-		assertStream(expected_dummy, dummyClass);
-		
-		FileInputStream expected = new FileInputStream(rootPath + "MyAgent.class");
-		assertStream(expected, myClass);
-	}
-
-	@Test public void MustNotConfuseHomonymsClasess() throws Exception{
-		String pkgRoot = "org/unbiquitous/driver/execution/";
-		String rootPath = currentDir+"/target/test-classes/"+pkgRoot;
-		
-		FileInputStream expected_dummy = new FileInputStream(rootPath + "DummyAgent.class");
-		assertStream(expected_dummy, driver.findClass(DummyAgent.class));
-		
-		FileInputStream expected_other = new FileInputStream(rootPath + "dummy/DummyAgent.class");
-		assertStream(expected_other, driver.findClass(org.unbiquitous.driver.execution.dummy.DummyAgent.class));
-		
-	}
-	
-	@Test public void mustFindAClassInsideAJar() throws Exception{
-		String rootPath = currentDir+"/target/test-classes/";
-		
-		FileInputStream expected_mockito = new FileInputStream(rootPath + "Mockito_class");
-		assertStream(expected_mockito, driver.findClass(Mockito.class));
-	}
-	
-	@Test public void mustNotSendJDKClasses() throws Exception{
-		assertStream(null, driver.findClass(Integer.class));
-		
-		//FIXME remover
-		File fui = new File(currentDir+"/Fui_class");
-		fui.createNewFile();
-		FileOutputStream writer = new FileOutputStream(fui);
-		InputStream clazz = driver.findClass(Fui.class);
-		int b = 0;
-		while((b = clazz.read()) != -1) writer.write(b);
-		writer.close();
-	}
-	
-	// Tests for internal method for loading a class
-	@Test public void mustLoadAClassFromStream() throws Exception{
-		
-		String source = 
-				"package org.unbiquitous.driver.execution;"
-			+	"public class Foo extends org.unbiquitous.driver.execution.MyAgent {"
-			+	"public int plusOne(Integer i){"
-			+	"	return i+1;"
-			+	"}"
-			+	"}";
-		
-		String clazz = "org.unbiquitous.driver.execution.Foo";
-		File origin = compile(source,clazz);
-
-	    Object o = driver.load("org.unbiquitous.driver.execution.Foo",new FileInputStream(origin));
-	    
-	    Method plusOne = o.getClass().getMethod("plusOne", Integer.class);
-		assertEquals(2,plusOne.invoke(o, 1));
-		
-		Method run = o.getClass().getMethod("run", Gateway.class);
-		int before = AgentSpy.count;
-		run.invoke(o, new Object[]{null});
-		assertEquals((Integer)(before+1),AgentSpy.count);
-	}
-
-	private File compile(String source, String clazz) {
-		//create origin folder
-		File origin = new File(tempDir.getPath()+"/origin/");
-		origin.mkdir();
-		//compile
-		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
-	    JavaSourceCompiler.CompilationUnit unit = compiler.createCompilationUnit(origin);
-	    unit.addJavaSource(clazz, source);
-	    compiler.compile(unit);
-	    assertEquals(0, origin.listFiles().length);
-	    compiler.persistCompiledClasses(unit);
-	    assertEquals(1, origin.listFiles().length);
-	    File f = origin;
-	    while (!f.isFile()){
-	    	f = f.listFiles()[0];
-	    }
-		return f;
-	}
-	
-	private void assertStream(InputStream expected, InputStream dummyClass)
-			throws IOException {
-		if (expected == dummyClass) return;
-		if (expected == null) fail("Returned stream was not null.");
-		if (dummyClass == null) fail("Returned stream was null.");
-		byte b;
-		long count = 0; 
-		while ((b = (byte)expected.read()) != -1){
-			assertEquals("Failed on byte "+count,b,(byte)dummyClass.read());
-			count ++;
-		}
-	}
 	
 	static interface EventuallyAssert{
 		boolean assertion();

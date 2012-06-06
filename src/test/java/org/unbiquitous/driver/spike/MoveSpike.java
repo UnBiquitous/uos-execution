@@ -4,6 +4,8 @@ import static org.mockito.Mockito.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,7 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.ListResourceBundle;
 import java.util.ResourceBundle;
@@ -22,6 +24,7 @@ import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.log4j.Logger;
 import org.luaj.vm2.LuaInteger;
 import org.luaj.vm2.LuaString;
 import org.luaj.vm2.LuaValue;
@@ -40,17 +43,19 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class MoveSpike {
 
+	private static final Logger logger = Logger.getLogger(MoveSpike.class);;
+
 	public static void main(String[] args) throws Exception{
 		
 		HelloAgent hello = new HelloAgent();
 //		hello.getClass().getResource(null);
 		move();
-		System.out.println(hello.getClass()+"\t>>\t"+findClass(hello));
-		System.out.println(new ExecutionDriver().getClass()+"\t>>\t"+findClass(new ExecutionDriver()));
-		System.out.println(new UOSApplicationContext().getClass()+"\t>>\t"+findClass(new UOSApplicationContext()));
-		System.out.println(new Mockito().getClass()+"\t>>\t"+findClass(new Mockito()));
-		System.out.println(Class.class.getResourceAsStream(new Mockito().getClass().getName().replace('.', File.separatorChar)+".class"));
-		System.out.println(new StringBuffer().getClass()+"\t>>\t"+findClass(new StringBuffer()));
+//		System.out.println(hello.getClass()+"\t>>\t"+findClass(hello));
+//		System.out.println(new ExecutionDriver().getClass()+"\t>>\t"+findClass(new ExecutionDriver()));
+//		System.out.println(new UOSApplicationContext().getClass()+"\t>>\t"+findClass(new UOSApplicationContext()));
+//		System.out.println(new Mockito().getClass()+"\t>>\t"+findClass(new Mockito()));
+//		System.out.println(Class.class.getResourceAsStream(new Mockito().getClass().getName().replace('.', File.separatorChar)+".class"));
+//		System.out.println(new StringBuffer().getClass()+"\t>>\t"+findClass(new StringBuffer()));
 	}
 	
 	private static String findClass(Object a) throws FileNotFoundException, IOException{
@@ -155,11 +160,13 @@ public class MoveSpike {
 		HelloAgent hello = new HelloAgent();
 		Gateway g = u.getGateway();
 		List<DriverData> drivers = null;
+		logger.debug("Searching Drivers.");
 		do{
 			drivers = g.listDrivers("uos.ExecutionDriver");
 		}while(drivers == null || drivers.isEmpty());
 		hello.init(u.getGateway());
 //		hello.moveTo(new UpDevice("MacAgentTarget"));
+		logger.debug("Start Moving.");
 		moveTo(hello,drivers.get(0).getDevice(),g);
 	}
 	
@@ -172,13 +179,23 @@ public class MoveSpike {
 		
 		try {
 			ServiceResponse r = g.callService(to, move);
+			logger.debug("Opening agent stream.");
 			ObjectOutputStream writer_agent = new ObjectOutputStream(r.getMessageContext().getDataOutputStream(0));
+			logger.debug("Sending agent.");
 			writer_agent.writeObject(a);
-			ObjectOutputStream writer_class = new ObjectOutputStream(r.getMessageContext().getDataOutputStream(0));
-			InputStream clazz= new FileInputStream(findClass(a));
+			writer_agent.close();
+			logger.debug("Opening class stream.");
+			OutputStream writer_class = r.getMessageContext().getDataOutputStream(1);
+			final String classFile = findClass(a);
+			logger.debug("Sending class "+classFile);
+			InputStream clazz= new FileInputStream(classFile);
+			logger.debug("Uffa.");
 			int b;
 			while((b = clazz.read())!= -1)
 				writer_class.write(b);
+			writer_class.close();
+//			logger.debug("Waiting to finish.");
+//			while (writer_agent.)
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -204,15 +221,6 @@ public class MoveSpike {
 			}
 		};
 		u.init(prop);
-	}
-}
-
-class HelloAgent extends Agent implements Serializable{
-	private static final long serialVersionUID = -5711645697892564502L;
-	public void run(Gateway gateway) {
-		while(true){
-			System.out.println("Eu sou um agente babaca que imprime "+gateway.getCurrentDevice());
-		}
 	}
 }
 
