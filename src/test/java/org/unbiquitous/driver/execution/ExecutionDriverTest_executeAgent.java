@@ -1,28 +1,27 @@
 package org.unbiquitous.driver.execution;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.unbiquitous.driver.execution.CompilationUtil.compileToClass;
+import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
 
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 
-import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
-import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
-import org.unbiquitous.driver.execution.ExecutionDriver;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;
@@ -38,13 +37,11 @@ public class ExecutionDriverTest_executeAgent {
 	private ServiceResponse response;
 	
 	private File tempDir;
-	private String currentDir;
 	
 	@Before public void setUp(){
 		driver = new ExecutionDriver();
 		response = new ServiceResponse();
 		tempDir = folder.getRoot();
-		currentDir = System.getProperty("user.dir") ;
 	}
 	
 	@Test public void runTheCalledAgentOnAThread() throws Exception{
@@ -64,70 +61,54 @@ public class ExecutionDriverTest_executeAgent {
 				}
 			});
 	}
-	//TODO: This test isn't quite as i wanted. I needed to send a serialized object 
-	//		of the same type of the code i'm sending
-	//		How can i do that?
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test public void runTheCalledAgentFromNewJavaCodeOnAThread() throws Exception{
-		MyAgent a = new MyAgent();
-		a.sleepTime = 1000;
-		
 		final Integer before = AgentSpy.count;
 		
 		String source = 
 				"package org.unbiquitous.driver.execution;"
 			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
 			+	"public class Foo2 extends org.unbiquitous.driver.execution.Agent {"
-			+	"public void run(Gateway gateway){"
-			+	"	AgentSpy.count+=17;"
+			+	"	int increment = 1;"
+			+	"	public static Foo2 getFoo2(){"
+			+	"		Foo2 f = new Foo2();"
+			+	"		f.increment=17;"
+			+	"		return f;"
+			+	"	}"
+			+	"	public void run(Gateway gateway){"
+			+	"		AgentSpy.count+=increment;"
 			+	"	}"
 			+	"}";
 		final String clazz = "org.unbiquitous.driver.execution.Foo2";
 		
-		File origin = compile(source,clazz);
-		
+		File origin = compileToFile(source,clazz, tempDir);
+		Class c= compileToClass(source,clazz);
 		try {
 			Class.forName(clazz);
 			fail("Must no have the class on classpath");
 		} catch (Exception e) {}
 		
+		Serializable a = (Serializable) c.getMethod("getFoo2", (Class[])null)
+											.invoke(null, new Object[]{});
+		
 		execute(a,new FileInputStream(origin), clazz);
 		
-		assertEventuallyTrue("Must have the class on classpath eventually",1000, new EventuallyAssert(){
-			public boolean assertion(){
-				try {
-					Class.forName(clazz); return true;
-				} catch (Exception e) { return false;}
-			}
-		});
+		assertEventuallyTrue("Must have the class on classpath eventually",1000, 
+				new EventuallyAssert(){
+					public boolean assertion(){
+						try {
+							Class.forName(clazz); return true;
+						} catch (Exception e) { return false;}
+					}
+				});
 		assertNull("No error should be found.",response.getError());
 		assertEquals((Integer)(before),AgentSpy.count);
-		assertEventuallyTrue("Must increment the SpyCount eventually", 
-				a.sleepTime + 1000, new EventuallyAssert(){
-				public boolean assertion(){
-					return (Integer)(before+1) == AgentSpy.count;
-				}
-			});
-	}
-	
-	//TODO: duplicate with ClassToolbox
-	private File compile(String source, String clazz) {
-		// create origin folder
-		File origin = new File(tempDir.getPath() + "/origin/");
-		origin.mkdir();
-		// compile
-		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
-		JavaSourceCompiler.CompilationUnit unit = compiler
-				.createCompilationUnit(origin);
-		unit.addJavaSource(clazz, source);
-		compiler.compile(unit);
-		assertEquals(0, origin.listFiles().length);
-		compiler.persistCompiledClasses(unit);
-		assertEquals(1, origin.listFiles().length);
-		File f = origin;
-		while (!f.isFile()) {
-			f = f.listFiles()[0];
-		}
-		return f;
+		assertEventuallyTrue("Must increment the SpyCount eventually",1000, 
+				new EventuallyAssert(){
+					public boolean assertion(){
+						return (Integer)(before+17) == AgentSpy.count;
+					}
+				});
 	}
 	
 	//FIXME: How to test this?
@@ -190,6 +171,7 @@ public class ExecutionDriverTest_executeAgent {
 	//TODO: Agent must be able to request to move itself
 	//TODO? Must the agent have a lifecycle?
 	//TODO? Do we need to control the execution of the Agent.
+	//TODO: must to the move of the agent like at MoveSpike.moveTo
 	
 	static interface EventuallyAssert{
 		boolean assertion();

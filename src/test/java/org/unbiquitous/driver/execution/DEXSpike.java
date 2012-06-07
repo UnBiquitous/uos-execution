@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-//TODO: This Spike creates a relation with the AndroidSpike created to validate this one
+// This Spike creates a relation with the AndroidSpike created to validate this one
 public class DEXSpike {
 
 	private static final String ANDROID_HOME="/opt/android-sdk-linux";
@@ -69,4 +69,8 @@ public class DEXSpike {
 	    }
 		return null;
 	}
+}
+
+class Fui {
+	public int mais2(int i){return i+2;}
 }

@@ -2,16 +2,14 @@ package org.unbiquitous.driver.execution;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 
-import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
-import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,7 +17,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class ClassToolboxTest {
 	@Rule
@@ -36,7 +33,6 @@ public class ClassToolboxTest {
 		currentDir = System.getProperty("user.dir") ;
 	}
 	
-	// TODO: Create a specific class for this
 	// TODO: handle jars and classes composition
 	// TODO: handle android optimization
 	@Test
@@ -96,7 +92,7 @@ public class ClassToolboxTest {
 				+ "public int plusOne(Integer i){" + "	return i+1;" + "}" + "}";
 
 		String clazz = "org.unbiquitous.driver.execution.Foo";
-		File origin = compile(source, clazz);
+		File origin = compileToFile(source, clazz, tempDir);
 
 		box.load("org.unbiquitous.driver.execution.Foo",
 				new FileInputStream(origin));
@@ -111,26 +107,6 @@ public class ClassToolboxTest {
 		int before = AgentSpy.count;
 		run.invoke(o, new Object[] { null });
 		assertEquals((Integer) (before + 1), AgentSpy.count);
-	}
-
-	private File compile(String source, String clazz) {
-		// create origin folder
-		File origin = new File(tempDir.getPath() + "/origin/");
-		origin.mkdir();
-		// compile
-		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
-		JavaSourceCompiler.CompilationUnit unit = compiler
-				.createCompilationUnit(origin);
-		unit.addJavaSource(clazz, source);
-		compiler.compile(unit);
-		assertEquals(0, origin.listFiles().length);
-		compiler.persistCompiledClasses(unit);
-		assertEquals(1, origin.listFiles().length);
-		File f = origin;
-		while (!f.isFile()) {
-			f = f.listFiles()[0];
-		}
-		return f;
 	}
 
 	private void assertStream(InputStream expected, InputStream dummyClass)

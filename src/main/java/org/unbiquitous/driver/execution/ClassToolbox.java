@@ -75,7 +75,6 @@ public class ClassToolbox {
 		return null;
 	}
 	
-	@SuppressWarnings("rawtypes")
 	//TODO: Should return the ClassLoader
 	protected void load(String className, InputStream clazz) throws Exception {
 		File classDir = createClassFileDir(className, clazz);

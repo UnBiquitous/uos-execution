@@ -1,37 +1,22 @@
 package org.unbiquitous.driver.spike;
 
-import static org.mockito.Mockito.*;
-
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.List;
 import java.util.ListResourceBundle;
 import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.log4j.Logger;
-import org.luaj.vm2.LuaInteger;
-import org.luaj.vm2.LuaString;
-import org.luaj.vm2.LuaValue;
-import org.mockito.Mockito;
 import org.unbiquitous.driver.execution.Agent;
-import org.unbiquitous.driver.execution.CallValues;
-import org.unbiquitous.driver.execution.ExecutionDriver;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.context.UOSApplicationContext;
@@ -47,7 +32,7 @@ public class MoveSpike {
 
 	public static void main(String[] args) throws Exception{
 		
-		HelloAgent hello = new HelloAgent();
+//		HelloAgent hello = new HelloAgent();
 //		hello.getClass().getResource(null);
 		move();
 //		System.out.println(hello.getClass()+"\t>>\t"+findClass(hello));
@@ -91,38 +76,11 @@ public class MoveSpike {
 			      } catch(Exception e) {
 			         e.printStackTrace();
 			      }
-		    }else if (classpathEntry.endsWith(".class") && classpathEntry.startsWith(a.getClass().getSimpleName())){ //FIXME: lots of problems here
+		    }else if (classpathEntry.endsWith(".class") && classpathEntry.startsWith(a.getClass().getSimpleName())){ 
 		    	return classpathEntry;
 		    }
 		}
 		return null;
-	}
-	
-	private static void spikeado(String path){
-		final int BUFFER = 2048;
-		try {
-	         FileInputStream fis = new FileInputStream(path);
-	         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fis));
-	         ZipEntry entry;
-	         while((entry = zis.getNextEntry()) != null) {
-	            System.out.println("Extracting: " +entry);
-	            StringBuilder b = new StringBuilder();
-	            byte data[] = new byte[BUFFER];
-	            while (zis.read(data, 0, BUFFER) != -1) {
-	            	if (entry.getName().endsWith(".html")){
-	            		b.append(new String(data));
-	            	}
-	            }
-	            if (entry.getName().endsWith(".html")){
-	            	System.out.println(path);
-	            	System.out.println(b.toString());
-	            	return;
-	            }
-	         }
-	         zis.close();
-	      } catch(Exception e) {
-	         e.printStackTrace();
-	      }
 	}
 	
 	private static String findFile(String classname, File entry){
@@ -131,7 +89,7 @@ public class MoveSpike {
 				String found = findFile(classname,child);
 				if (found != null)	return found;
 			}
-		}else if (entry.getName().endsWith(".class") && entry.getName().startsWith(classname)){ //FIXME: lots of problems here
+		}else if (entry.getName().endsWith(".class") && entry.getName().startsWith(classname)){
 	    	return entry.getPath();
 	    }
 		return null;
@@ -224,3 +182,11 @@ public class MoveSpike {
 	}
 }
 
+class HelloAgent extends Agent implements Serializable{
+	private static final long serialVersionUID = -5711645697892564502L;
+	public void run(Gateway gateway) {
+		while(true){
+			System.out.println("Eu sou um agente babaca que imprime "+gateway.getCurrentDevice());
+		}
+	}
+}
