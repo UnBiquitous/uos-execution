@@ -54,14 +54,30 @@ public class ExecutionDriver implements UosDriver {
 
 	private UpDriver driver;
 	private Gateway gateway;
-	private ClassToolbox util;
+	private ClassToolbox toolbox;
 	
 	public ExecutionDriver(){
 		driver = new UpDriver("uos.ExecutionDriver");
 		driver.addService("remoteExecution").addParameter("code", ParameterType.MANDATORY);
 		driver.addService("executeAgent");
-		util = new ClassToolbox(); //TODO: should be able to inject
+		toolbox = new ClassToolbox(); //TODO: should be able to inject
+		toolbox.addJar2BlackList("junit-3.8.1.jar");
+		toolbox.addJar2BlackList("junit-4.9.jar");
+		toolbox.addJar2BlackList("log4j-1.2.16.jar");
+		toolbox.addJar2BlackList("log4j-1.2.14.jar");
+		toolbox.addJar2BlackList("hsqldb-1.8.0.10.jar");
+		toolbox.addJar2BlackList("hsqldb-1.8.0.7.jar");
+		toolbox.addJar2BlackList("owlapi-3.2.4.jar");
+		toolbox.addJar2BlackList("jcl-core-2.2.2.jar");
+		toolbox.addJar2BlackList("objenesis-1.1.jar");
+		toolbox.addJar2BlackList("cglib-nodep-2.2.jar");
+		toolbox.addJar2BlackList("HermiT-1.0.jar");
+		toolbox.addJar2BlackList("hamcrest-core-1.1.jar");
+		toolbox.addJar2BlackList("mockito-all-1.8.5.jar");
+		toolbox.addJar2BlackList("uos-core-2.2.0_DEV.jar");
 	}
+	
+	public ClassToolbox toolbox() {return toolbox;}
 	
 	public UpDriver getDriver() {	return driver;	}
 
@@ -141,7 +157,7 @@ public class ExecutionDriver implements UosDriver {
 				final ClassLoader loader;
 				if (className != null){
 					while (clazz.available() == 0){}
-					loader = util.load(className, clazz);
+					loader = toolbox.load(className, clazz);
 				}else{
 					loader = null;
 				}
@@ -168,5 +184,5 @@ public class ExecutionDriver implements UosDriver {
 			}
 		};
 	}
-	
+
 }

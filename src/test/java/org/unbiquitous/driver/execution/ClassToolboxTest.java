@@ -1,7 +1,6 @@
 package org.unbiquitous.driver.execution;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
 
 import java.io.File;
@@ -9,11 +8,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.URLClassLoader;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.luaj.vm2.Lua;
 import org.mockito.Mockito;
 import org.unbiquitous.driver.execution.MyAgent.AgentSpy;
 
@@ -34,8 +38,8 @@ public class ClassToolboxTest {
 		currentDir = System.getProperty("user.dir") ;
 	}
 	
-	// TODO: handle jars and classes composition
 	// TODO: handle android optimization
+	// TODO: Tempfolder and stuff like that will need to be parametized for Android
 	@Test
 	public void findsAClassInTheSourceFolder() throws Exception {
 		String pkgRoot = "org/unbiquitous/driver/execution/";
@@ -52,7 +56,7 @@ public class ClassToolboxTest {
 	}
 
 	@Test
-	public void MustNotConfuseHomonymsClasess() throws Exception {
+	public void MustNotConfuseHomonymsClases() throws Exception {
 		String pkgRoot = "org/unbiquitous/driver/execution/";
 		String rootPath = currentDir + "/target/test-classes/" + pkgRoot;
 
@@ -65,24 +69,25 @@ public class ClassToolboxTest {
 		assertStream(
 				expected_other,
 				box.findClass(org.unbiquitous.driver.execution.dummy.DummyAgent.class));
-
 	}
 
-	@Test
-	public void mustFindAClassInsideAJar() throws Exception {
+	@Test public void mustFindAClassInsideAJar() throws Exception {
 		String rootPath = currentDir + "/target/test-classes/";
 
 		FileInputStream expected_mockito = new FileInputStream(rootPath+"Mockito_class");
 		assertStream(expected_mockito, box.findClass(Mockito.class));
 	}
 
-	@Test
-	public void mustNotFindJDKClasses() throws Exception {
+	@Test public void mustNotFindJDKClasses() throws Exception {
 		assertStream(null, box.findClass(Integer.class));
 	}
 
-	@Test
-	public void mustLoadAClassFromStream() throws Exception {
+	@Test public void mustNotFindClassesOnBlacklistedJars() throws Exception{
+		box.addJar2BlackList("luaj-jse-2.0.2.jar");
+		assertStream(null, box.findClass(Lua.class));
+	}
+	
+	@Test public void mustLoadAClassFromStream() throws Exception {
 
 		String source = "package org.unbiquitous.driver.execution;"
 				+ "public class Foo extends org.unbiquitous.driver.execution.MyAgent {"
@@ -94,6 +99,9 @@ public class ClassToolboxTest {
 		ClassLoader loader = box.load("org.unbiquitous.driver.execution.Foo",
 				new FileInputStream(origin));
 
+		assertEquals("default ClassLoader must me URLClassLoader.",
+						URLClassLoader.class, loader.getClass());
+		
 		Object o = loader.loadClass("org.unbiquitous.driver.execution.Foo")
 				.newInstance();
 
@@ -105,15 +113,24 @@ public class ClassToolboxTest {
 		run.invoke(o, new Object[] { null });
 		assertEquals((Integer) (before + 1), AgentSpy.count);
 	}
-
-//	@Test void dafaultClassLoaderMustBeURLClassLoader() throws Exception{
-//		ClassLoader loader = box.load("org.unbiquitous.driver.execution.Foo",
-//				null);
-//	}
 	
-	@Test void classLoaderMustBeConfigurable(){
+	// TODO: handle jars and classes composition
+	@Test public void packageJarWithASingleAgentClass() throws Exception{
+		File jar = box.packageJarFor(
+				org.unbiquitous.driver.execution.dummy.DummyAgent.class);
 		
+		assertNotNull(jar);
+
+		Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) new ZipFile(jar).entries();
+		ZipEntry entry = entries.nextElement();
+		assertEquals("org/unbiquitous/driver/execution/dummy/DummyAgent.class",
+																entry.getName());
+		assertFalse(entries.hasMoreElements());
+		
+//		assertEquals("Must go down as many levels",dummyPath.length,levels);
 	}
+	//TODO: Agent class cannot be inner class and must be public
+	
 	
 	private void assertStream(InputStream expected, InputStream dummyClass)
 			throws IOException {

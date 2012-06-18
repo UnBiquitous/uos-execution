@@ -20,6 +20,8 @@ import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,6 +48,27 @@ public class ExecutionDriverTest_executeAgent {
 		driver = new ExecutionDriver();
 		response = new ServiceResponse();
 		tempDir = folder.getRoot();
+	}
+	
+	@Test public void toolboxMustBeInitializedWithDependencies(){
+		Set<String> dependencies = new HashSet<String>(); 
+		//TODO: fix these duplicates
+		dependencies.add("junit-3.8.1.jar");
+		dependencies.add("junit-4.9.jar");
+		dependencies.add("log4j-1.2.16.jar");
+		dependencies.add("log4j-1.2.14.jar");
+		dependencies.add("hsqldb-1.8.0.10.jar");
+		dependencies.add("hsqldb-1.8.0.7.jar");
+		dependencies.add("owlapi-3.2.4.jar");
+		dependencies.add("jcl-core-2.2.2.jar");
+		dependencies.add("objenesis-1.1.jar");
+		dependencies.add("cglib-nodep-2.2.jar");
+		dependencies.add("HermiT-1.0.jar");
+		dependencies.add("hamcrest-core-1.1.jar");
+		dependencies.add("mockito-all-1.8.5.jar");
+		//TODO: how to handle if the versions changes or something is added
+		dependencies.add("uos-core-2.2.0_DEV.jar");
+		assertEquals(dependencies,driver.toolbox().blacklist());
 	}
 	
 	@Test public void runTheCalledAgentOnAThread() throws Exception{
@@ -98,15 +121,6 @@ public class ExecutionDriverTest_executeAgent {
 											.invoke(null, new Object[]{});
 		
 		execute(a,new FileInputStream(clazzFile), clazz);
-		
-//		assertEventuallyTrue("Must have the class on classpath eventually",1000, 
-//				new EventuallyAssert(){
-//					public boolean assertion(){
-//						try {
-//							Class.forName(clazz); return true;
-//						} catch (Exception e) { return false;}
-//					}
-//				});
 		
 		assertNull("No error should be found.",response.getError());
 		
