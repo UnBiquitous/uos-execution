@@ -8,9 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -18,8 +15,16 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/**
+ * This class is responsible for all logic regarding byte code mumblejumbo.
+ * In a nutshell, it'll handle loading, finding and packaging all classes
+ * for an easy mobility logic.
+ * 
+ * @author Fabricio Nogueira Buzeto
+ *
+ */
 public class ClassToolbox {
-	protected InputStream findClass(Class clazz) throws IOException {
+	protected InputStream findClass(Class<?> clazz) throws IOException {
 		String className = clazz.getName().replace('.', File.separatorChar);
 		for (String entryPath : System.getProperty("java.class.path").split(System.getProperty("path.separator"))) {
 			File entry = new File(entryPath);
@@ -75,24 +80,42 @@ public class ClassToolbox {
 		return null;
 	}
 	
-	//TODO: Should return the ClassLoader
-	protected void load(String className, InputStream clazz) throws Exception {
+	//TODO: Check how to work this out when at android.
+	/*
+	 * In Android we must follow some steps like:
+	 * 
+	 * 1 : The input must be a optimized jar
+	 * 2 : This Jar must be put on a temporary folder that is writable
+	 * 3 : The Loader must be a DexClassLoader
+	 * 		ex: new DexClassLoader(jarPath,parentFile.getPath(),null, getClassLoader());
+	 */
+	protected ClassLoader load(String className, InputStream clazz) throws Exception {
 		File classDir = createClassFileDir(className, clazz);
-		
-		addPathToClassLoader(classDir);
+		return new URLClassLoader(new URL[] { classDir.toURI().toURL() },ClassLoader.getSystemClassLoader());
+//		addPathToClassLoader(classDir);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void addPathToClassLoader(File classDir)
-			throws NoSuchMethodException, IllegalAccessException,
-			InvocationTargetException, MalformedURLException {
-		URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-		Class sysclass = URLClassLoader.class;
-		Method method = sysclass.getDeclaredMethod("addURL", URL.class);
-		method.setAccessible(true);
-		method.invoke(sysloader, new Object[] { classDir.toURI().toURL() });
-	}
+//	@SuppressWarnings({ "rawtypes", "unchecked" })
+//	private void addPathToClassLoader(File classDir)
+//			throws NoSuchMethodException, IllegalAccessException,
+//			InvocationTargetException, MalformedURLException {
+//		URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+//		Class sysclass = URLClassLoader.class;
+//		Method method = sysclass.getDeclaredMethod("addURL", URL.class);
+//		method.setAccessible(true);
+//		method.invoke(sysloader, new Object[] { classDir.toURI().toURL() });
+	
+	
+//	ClassLoader sysloader = ClassLoader.getSystemClassLoader();
+//	Class sysclass = ClassLoader.class;
+//	Method method = sysclass.getDeclaredMethod("defineClass", 
+//				new Class[]{String.class,byte[].class,int.class,int.class});
+//	method.setAccessible(true);
+//	method.invoke(sysloader, new Object[] { "org.unbiquitous.driver.execution.Fui", 
+//										codeArray, 0, codeArray.length })
+//	}
 
+	// TODO: should tempdir be unique for the driver?
 	private File createClassFileDir(String className, InputStream clazz)
 			throws IOException, FileNotFoundException {
 		File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime());

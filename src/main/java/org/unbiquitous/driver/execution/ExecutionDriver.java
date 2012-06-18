@@ -1,24 +1,11 @@
 package org.unbiquitous.driver.execution;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
+import java.io.ObjectStreamClass;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.apache.log4j.Logger;
 import org.luaj.vm2.LoadState;
@@ -134,7 +121,7 @@ public class ExecutionDriver implements UosDriver {
 			new Thread(new AgentHandler(className, clazz, agent)).start();
 		} catch (Throwable e) {
 			response.setError("Something unexpected happened.");
-			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 
@@ -151,12 +138,25 @@ public class ExecutionDriver implements UosDriver {
 
 		public void run() {
 			try {
+				final ClassLoader loader;
 				if (className != null){
 					while (clazz.available() == 0){}
-					util.load(className, clazz);
+					loader = util.load(className, clazz);
+				}else{
+					loader = null;
 				}
 				while (agent.available() == 0){}
-				ObjectInputStream reader = new ObjectInputStream(agent);
+				ObjectInputStream reader = new ObjectInputStream(agent){
+					@Override
+					protected Class<?> resolveClass(ObjectStreamClass desc)
+							throws IOException, ClassNotFoundException {
+						try{
+							return loader.loadClass(desc.getName());
+						}catch(Exception e){
+							return super.resolveClass(desc);
+						}
+					}
+				};
 				Object o = reader.readObject();
 				if (o instanceof Agent){
 					((Agent)o).run(gateway);

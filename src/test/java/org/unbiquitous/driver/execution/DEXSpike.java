@@ -16,14 +16,19 @@ public class DEXSpike {
 	
 	// All classes must be compiled in Java1.6 bytecode
 	public static void main(String[] args) throws Exception {
-		File fuiPath = findClass(Fui.class);
+//		File fuiPath = findClass(Fui.class);
 		
 		String currentDir = System.getProperty("user.dir") ;
 		
-		String dexFile = currentDir+"/mydex.jar";
+		// Create DEX File
+//		String dexFile = currentDir+"/mydex.jar";
+		String dexFile = currentDir+"/classes.dex";
 //		String classFile = fuiPath.getPath();
-		String classFile = "/home/dados/unb/ubiquitos/workspace/execution/target/test-classes/";
-		runDex(classFile, dexFile);
+		String classFilesPath = "/home/dados/unb/ubiquitos/workspace/execution/target/test-classes/";
+		runDex(classFilesPath, dexFile);
+		
+		// copy original .class file
+		
 	}
 	
 	private static void runDex(String classFile, String dexFile) throws IOException{
@@ -69,8 +74,4 @@ public class DEXSpike {
 	    }
 		return null;
 	}
-}
-
-class Fui {
-	public int mais2(int i){return i+2;}
 }

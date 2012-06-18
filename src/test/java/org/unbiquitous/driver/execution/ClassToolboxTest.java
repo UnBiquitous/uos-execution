@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+import org.unbiquitous.driver.execution.MyAgent.AgentSpy;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 
@@ -43,12 +44,10 @@ public class ClassToolboxTest {
 		InputStream dummyClass = box.findClass(DummyAgent.class);
 		InputStream myClass = box.findClass(MyAgent.class);
 
-		FileInputStream expected_dummy = new FileInputStream(rootPath
-				+ "DummyAgent.class");
+		FileInputStream expected_dummy = new FileInputStream(rootPath+"DummyAgent.class");
 		assertStream(expected_dummy, dummyClass);
 
-		FileInputStream expected = new FileInputStream(rootPath
-				+ "MyAgent.class");
+		FileInputStream expected = new FileInputStream(rootPath+ "MyAgent.class");
 		assertStream(expected, myClass);
 	}
 
@@ -73,17 +72,15 @@ public class ClassToolboxTest {
 	public void mustFindAClassInsideAJar() throws Exception {
 		String rootPath = currentDir + "/target/test-classes/";
 
-		FileInputStream expected_mockito = new FileInputStream(rootPath
-				+ "Mockito_class");
+		FileInputStream expected_mockito = new FileInputStream(rootPath+"Mockito_class");
 		assertStream(expected_mockito, box.findClass(Mockito.class));
 	}
 
 	@Test
-	public void mustNotSendJDKClasses() throws Exception {
+	public void mustNotFindJDKClasses() throws Exception {
 		assertStream(null, box.findClass(Integer.class));
 	}
 
-	// Tests for internal method for loading a class
 	@Test
 	public void mustLoadAClassFromStream() throws Exception {
 
@@ -94,10 +91,10 @@ public class ClassToolboxTest {
 		String clazz = "org.unbiquitous.driver.execution.Foo";
 		File origin = compileToFile(source, clazz, tempDir);
 
-		box.load("org.unbiquitous.driver.execution.Foo",
+		ClassLoader loader = box.load("org.unbiquitous.driver.execution.Foo",
 				new FileInputStream(origin));
 
-		Object o = Class.forName("org.unbiquitous.driver.execution.Foo")
+		Object o = loader.loadClass("org.unbiquitous.driver.execution.Foo")
 				.newInstance();
 
 		Method plusOne = o.getClass().getMethod("plusOne", Integer.class);
@@ -109,6 +106,15 @@ public class ClassToolboxTest {
 		assertEquals((Integer) (before + 1), AgentSpy.count);
 	}
 
+//	@Test void dafaultClassLoaderMustBeURLClassLoader() throws Exception{
+//		ClassLoader loader = box.load("org.unbiquitous.driver.execution.Foo",
+//				null);
+//	}
+	
+	@Test void classLoaderMustBeConfigurable(){
+		
+	}
+	
 	private void assertStream(InputStream expected, InputStream dummyClass)
 			throws IOException {
 		if (expected == dummyClass)

@@ -9,9 +9,12 @@ import static org.mockito.Mockito.mock;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToClass;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
@@ -22,6 +25,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.unbiquitous.driver.execution.MyAgent.AgentSpy;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;
@@ -61,12 +65,14 @@ public class ExecutionDriverTest_executeAgent {
 				}
 			});
 	}
+	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test public void runTheCalledAgentFromNewJavaCodeOnAThread() throws Exception{
 		final Integer before = AgentSpy.count;
 		
 		String source = 
 				"package org.unbiquitous.driver.execution;"
+			+	"import org.unbiquitous.driver.execution.MyAgent.AgentSpy;"
 			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
 			+	"public class Foo2 extends org.unbiquitous.driver.execution.Agent {"
 			+	"	int increment = 1;"
@@ -81,7 +87,7 @@ public class ExecutionDriverTest_executeAgent {
 			+	"}";
 		final String clazz = "org.unbiquitous.driver.execution.Foo2";
 		
-		File origin = compileToFile(source,clazz, tempDir);
+		File clazzFile = compileToFile(source,clazz, tempDir);
 		Class c= compileToClass(source,clazz);
 		try {
 			Class.forName(clazz);
@@ -91,24 +97,69 @@ public class ExecutionDriverTest_executeAgent {
 		Serializable a = (Serializable) c.getMethod("getFoo2", (Class[])null)
 											.invoke(null, new Object[]{});
 		
-		execute(a,new FileInputStream(origin), clazz);
+		execute(a,new FileInputStream(clazzFile), clazz);
 		
-		assertEventuallyTrue("Must have the class on classpath eventually",1000, 
-				new EventuallyAssert(){
-					public boolean assertion(){
-						try {
-							Class.forName(clazz); return true;
-						} catch (Exception e) { return false;}
-					}
-				});
+//		assertEventuallyTrue("Must have the class on classpath eventually",1000, 
+//				new EventuallyAssert(){
+//					public boolean assertion(){
+//						try {
+//							Class.forName(clazz); return true;
+//						} catch (Exception e) { return false;}
+//					}
+//				});
+		
 		assertNull("No error should be found.",response.getError());
-		assertEquals((Integer)(before),AgentSpy.count);
+		
 		assertEventuallyTrue("Must increment the SpyCount eventually",1000, 
 				new EventuallyAssert(){
 					public boolean assertion(){
 						return (Integer)(before+17) == AgentSpy.count;
 					}
 				});
+	}
+	
+	@Test public void rejectsACorruptedAgentObject() throws Exception{
+		final Integer before = AgentSpy.count;
+		MyAgent a = new MyAgent();
+		
+		dontexecute(a);
+		
+		Thread.sleep(1000);
+		assertEquals("SpyCount must be unchanged",(Integer)(before),AgentSpy.count);
+	}
+	
+	@Test public void rejectsACorruptedClassStream() throws Exception{
+		final Integer before = AgentSpy.count;
+		
+		String source = 
+				"package org.unbiquitous.driver.execution;"
+			+	"import org.unbiquitous.driver.execution.MyAgent.AgentSpy;"
+			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
+			+	"public class Foo3 extends org.unbiquitous.driver.execution.Agent {"
+			+	"	int increment = 1;"
+			+	"	public static Foo3 getFoo3(){"
+			+	"		Foo3 f = new Foo3();"
+			+	"		f.increment=13;"
+			+	"		return f;"
+			+	"	}"
+			+	"	public void run(Gateway gateway){"
+			+	"		AgentSpy.count+=increment;"
+			+	"	}"
+			+	"}";
+		final String clazz = "org.unbiquitous.driver.execution.Foo3";
+		
+		File clazzFile = compileToFile(source,clazz, tempDir);
+		Class<?> c= compileToClass(source,clazz);
+		
+		
+		Serializable a = (Serializable) c.getMethod("getFoo3", (Class[])null)
+											.invoke(null, new Object[]{});
+		
+		dontexecute(a,new FileInputStream(clazzFile), clazz);
+		
+		Thread.sleep(1000);
+		
+		assertEquals("SpyCount must be unchanged",(Integer)(before),AgentSpy.count);
 	}
 	
 	//FIXME: How to test this?
@@ -168,9 +219,9 @@ public class ExecutionDriverTest_executeAgent {
 	//TODO: SHouldn't wait 4 ever for a agent to be received
 	//TODO: We must assure that the properties are all transient
 	//TODO: check if there is a way to do it with OSGi
-	//TODO: Agent must be able to request to move itself
 	//TODO? Must the agent have a lifecycle?
 	//TODO? Do we need to control the execution of the Agent.
+	//TODO: Agent must be able to request to move itself
 	//TODO: must to the move of the agent like at MoveSpike.moveTo
 	
 	static interface EventuallyAssert{
@@ -191,46 +242,81 @@ public class ExecutionDriverTest_executeAgent {
 	}
 	
 	private void execute(Serializable a, final InputStream code, String clazz) throws Exception{
-		final PipedInputStream inAgent = new PipedInputStream();
-		final DataInputStream retAgent = new DataInputStream(inAgent);
-		PipedOutputStream outAgent = new PipedOutputStream(inAgent);
-
-		driver.executeAgent(new ServiceCall().addParameter("class", clazz)
-								,response,new UOSMessageContext(){
-			public DataInputStream getDataInputStream() {	return retAgent;	}
-			public DataInputStream getDataInputStream(int index) {
-				if (index == 0){
-					return retAgent;
-				}else if (index == 1){
-					return new DataInputStream(code);
-				}
-				return null;
+		execute(a, code, clazz, false, false);
+	}
+	
+	private void dontexecute(Serializable a) throws Exception{
+		execute(a, null, null, true, false);
+	}
+	
+	private void dontexecute(Serializable a, final InputStream code, String clazz) throws Exception{
+		execute(a, code, clazz, false, true);
+	}
+	
+	private void execute(Serializable a, final InputStream code, String clazz, 
+							boolean mustFailAgent, final boolean mustFailCode) throws Exception{
+		final PipedInputStream pipeForAgent = new PipedInputStream();
+		final DataInputStream agentStream = new DataInputStream(pipeForAgent);
+		PipedOutputStream whereToWriteAgent = new PipedOutputStream(pipeForAgent);
+		
+		ByteArrayOutputStream agentSpy = new ByteArrayOutputStream();
+		new ObjectOutputStream(agentSpy).writeObject(a);
+		final byte[] agentArray = agentSpy.toByteArray();
+		
+		driver.executeAgent(
+				new ServiceCall()
+					// These parameters remains a question since when the
+					// file or serialized object fail during transfer the 
+					// execution simply doesn't occur.
+					//
+					//.addParameter("agent_size",""+agentArray.length) should I?
+					//.addParameter("code_size",""+codeArray.length) should I?
+					.addParameter("class", clazz)
+					,
+				response,
+				new UOSMessageContext(){
+					public DataInputStream getDataInputStream() {	
+						return agentStream;	
+					}
+					public DataInputStream getDataInputStream(int index) {
+						if (index == 0){
+							return agentStream;
+						}else if (index == 1){
+							if (mustFailCode){
+								try {
+									final ByteArrayOutputStream codeSpy = 
+											new ByteArrayOutputStream();
+									int b;
+									while ((b = code.read()) != -1) codeSpy.write(b);
+									final byte[] codeArray = codeSpy.toByteArray();
+									ByteArrayInputStream baos = 
+											new ByteArrayInputStream(
+													codeArray,0,codeArray.length-10);
+									return new DataInputStream(baos);
+								} catch (IOException e) {}
+							}else{
+								return new DataInputStream(code);
+							}
+						}
+						return null;
+					}
+				});
+		
+		if(mustFailAgent){
+			for(int i =0 ; i < agentArray.length -10; i++){
+				whereToWriteAgent.write(agentArray[i]);
 			}
-		});
-		new ObjectOutputStream(outAgent).writeObject(a);
+		}else{
+			whereToWriteAgent.write(agentArray);
+		}
+		
+//		outAgent
 	}
 }
 
 class NonAgent implements Serializable{
 	private static final long serialVersionUID = -6537712082673542107L;
 	public void run(Gateway gateway){
-		AgentSpy.count++;
-	}
-}
-
-class AgentSpy{
-	static Integer count = 0;
-	static MyAgent lastAgent = null;
-}
-
-class MyAgent extends Agent{
-	private static final long serialVersionUID = -8267793981973238896L;
-	public Integer sleepTime = 0;
-	public Gateway gateway;
-	public void run(Gateway gateway){
-		AgentSpy.lastAgent = this;
-		this.gateway = gateway; 
-		try {	Thread.sleep(sleepTime);	} catch (Exception e) {}
 		AgentSpy.count++;
 	}
 }

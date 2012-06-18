@@ -20,11 +20,6 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId> org.abstractmeta</groupId>
-			<artifactId>compilation-toolbox</artifactId>
-			<version>0.3.0</version>
-		</dependency>
-		<dependency>
 			<groupId>ubiquitos</groupId>
 			<artifactId>uos.core</artifactId>
 			<version>2.2.0_DEV</version>
@@ -42,11 +37,16 @@
 			<version>4.10</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
 			<version>1.8.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId> org.abstractmeta</groupId>
+			<artifactId>compilation-toolbox</artifactId>
+			<version>0.3.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
