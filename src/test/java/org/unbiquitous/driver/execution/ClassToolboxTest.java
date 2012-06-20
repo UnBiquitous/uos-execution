@@ -123,6 +123,8 @@ public class ClassToolboxTest {
 		assertEquals((Integer) (before + 1), AgentSpy.count);
 	}
 	
+	//TODO:mustLoadAClassFromJar
+	
 	@SuppressWarnings("unchecked")
 	@Test public void packageJarWithASingleAgentClass() throws Exception{
 		box.add2BlackList("uos-core-2.2.0_DEV.jar");
@@ -165,8 +167,9 @@ public class ClassToolboxTest {
 	 * - Must include method parameters
 	 * - Must include method return types
 	 * - Must include constants types
-	 * TODO:
 	 * - Must include static fields and methods
+	 * TODO:
+	 * - Must include inner classes
 	 */
 	@SuppressWarnings("unchecked")
 	@Test public void packageJarWithAnAgentClassAndItsObjectAttributes() throws Exception{

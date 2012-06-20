@@ -151,7 +151,7 @@ public class ClassToolbox {
 		return tempDir;
 	}
 	
-	private void writeClassFileOnPath(String className, InputStream clazzByteCode,
+	protected void writeClassFileOnPath(String className, InputStream clazzByteCode,
 			File path) throws IOException, FileNotFoundException {
 		File classFile = new File(path.getPath()+"/"+className.replace('.', '/')+".class");
 		classFile.getParentFile().mkdirs();
@@ -171,9 +171,21 @@ public class ClassToolbox {
 	}
 	
 	public File packageJarFor(Class<?> clazz) throws Exception {
-		File path = temporaryDir();
-		Set<Class<?>> processedClasses = new HashSet<Class<?>>();
-		packageClass(clazz, path, processedClasses);
+		return new JarPackager(this).packageJar(clazz, temporaryDir());
+	}
+	
+	
+}
+
+class JarPackager {
+	
+	ClassToolbox toolbox;
+	Set<Class<?>> processedClasses = new HashSet<Class<?>>();
+	
+	public JarPackager(ClassToolbox toolbox) {this.toolbox = toolbox;}
+
+	File packageJar(Class<?> clazz, File path) throws Exception{
+		packageClass(clazz, path);
 		
 		File jar =  File.createTempFile("uExeJar", ""+System.nanoTime());
 		final ZipOutputStream zos = new ZipOutputStream( new FileOutputStream( jar ) );
@@ -182,53 +194,54 @@ public class ClassToolbox {
 		return jar;
 	}
 	
-	private void packageClass(Class<?> clazz, File path, Set<Class<?>> processedClasses) throws IOException,
+	protected void packageClass(Class<?> clazz, File path) throws IOException,
 			FileNotFoundException, ClassNotFoundException {
-		if (!processedClasses.contains(clazz)){
+		if (!processedClasses.contains(clazz)) {
 			processedClasses.add(clazz);
-			writeClassFileOnPath(clazz.getName(),findClass(clazz), path);
-			
+			toolbox.writeClassFileOnPath(clazz.getName(), toolbox.findClass(clazz), path);
+
 			final JavaClass rClazz = Repository.lookupClass(clazz);
-			
-			for (Field f:rClazz.getFields()){
-				if (!(f.getType() instanceof BasicType)	){ 
+
+			for (Field f : rClazz.getFields()) {
+				if (!(f.getType() instanceof BasicType)) {
 					final Class<?> type = Class.forName(f.getType().toString());
-					if (findClass(type) != null) // found
-						packageClass(type, path,processedClasses);
+					if (toolbox.findClass(type) != null) // found
+						packageClass(type, path);
 				}
 			}
-			
-			for (JavaClass sClazz : rClazz.getSuperClasses()){
+
+			for (JavaClass sClazz : rClazz.getSuperClasses()) {
 				final Class<?> type = Class.forName(sClazz.getClassName());
-				if (findClass(type) != null) // found
-					packageClass(type, path, processedClasses);
+				if (toolbox.findClass(type) != null) // found
+					packageClass(type, path);
 			}
-			
-			for (JavaClass sClazz : rClazz.getInterfaces()){
+
+			for (JavaClass sClazz : rClazz.getInterfaces()) {
 				final Class<?> type = Class.forName(sClazz.getClassName());
-				if (findClass(type) != null) // found
-					packageClass(type, path, processedClasses);
+				if (toolbox.findClass(type) != null) // found
+					packageClass(type, path);
 			}
-			
-			for (Method method : rClazz.getMethods()){
-				for (Type t :method.getArgumentTypes()){
-					if (!(t instanceof BasicType)	){ 
+
+			for (Method method : rClazz.getMethods()) {
+				for (Type t : method.getArgumentTypes()) {
+					if (!(t instanceof BasicType)) {
 						final Class<?> type = Class.forName(t.toString());
-						if (findClass(type) != null) // found
-							packageClass(type, path, processedClasses);
+						if (toolbox.findClass(type) != null) // found
+							packageClass(type, path);
 					}
 				}
-				
-				if (!(method.getReturnType() instanceof BasicType)	){ 
-					final Class<?> type = Class.forName(method.getReturnType().toString());
-					if (findClass(type) != null) // found
-						packageClass(type, path, processedClasses);
+
+				if (!(method.getReturnType() instanceof BasicType)) {
+					final Class<?> type = Class.forName(method.getReturnType()
+							.toString());
+					if (toolbox.findClass(type) != null) // found
+						packageClass(type, path);
 				}
 			}
 		}
 	}
 
-	void zip(File directory, File base, ZipOutputStream zos) throws IOException {
+	protected void zip(File directory, File base, ZipOutputStream zos) throws IOException {
 		File[] files = directory.listFiles();
 		byte[] buffer = new byte[8192];
 		int read = 0;
@@ -247,5 +260,4 @@ public class ClassToolbox {
 			}
 		}
 	}
-	
 }
