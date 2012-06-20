@@ -76,7 +76,8 @@ public class ZipSpike {
 	    }
 	  }
 
-	  public static final void unzip(File zip, File extractTo) throws IOException {
+	@SuppressWarnings("rawtypes")
+	public static final void unzip(File zip, File extractTo) throws IOException {
 	    ZipFile archive = new ZipFile(zip);
 	    Enumeration e = archive.entries();
 	    while (e.hasMoreElements()) {

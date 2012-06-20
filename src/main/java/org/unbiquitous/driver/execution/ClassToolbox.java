@@ -1,7 +1,6 @@
 package org.unbiquitous.driver.execution;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,14 +11,19 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.Field;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.Type;
 
 /**
  * This class is responsible for all logic regarding byte code mumblejumbo.
@@ -33,7 +37,7 @@ public class ClassToolbox {
 	
 	private Set<String> blacklist =  new HashSet<String>();
 	
-	public void addJar2BlackList(String jarName) {	blacklist.add(jarName);}
+	public void add2BlackList(String jarName) {	blacklist.add(jarName);}
 	public Set<String> blacklist(){ return blacklist;};
 	
 	protected InputStream findClass(Class<?> clazz) throws IOException {
@@ -41,7 +45,7 @@ public class ClassToolbox {
 		for (String entryPath : System.getProperty("java.class.path")
 								.split(System.getProperty("path.separator"))) {
 			File entry = new File(entryPath);
-			if (entry.isDirectory()){
+			if (entry.isDirectory() && !inBlackList(entry.getPath())){
 				File found = findClassFileOnDir(className, entry);
 				if (found != null)	return new FileInputStream(found);
 			}else if (entry.getName().endsWith(".jar") && 
@@ -55,6 +59,13 @@ public class ClassToolbox {
 		return null;
 	}
 
+	private boolean inBlackList(String path) {
+		for (String black : blacklist)
+			if (path.contains(black))	{
+				return true;
+			}
+		return false;
+	}
 	private boolean inBlacklist(String jarName) {
 		return blacklist.contains(jarName);
 	}
@@ -133,30 +144,88 @@ public class ClassToolbox {
 //										codeArray, 0, codeArray.length })
 //	}
 
-	// TODO: should tempdir be unique for the driver?
 	private File createClassFileDir(String className, InputStream clazz)
 			throws IOException, FileNotFoundException {
-		File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime());
-		tempDir.delete(); // Delete temp file
-		tempDir.mkdir();  // and transform it to a directory
-		
-		File classFile = new File(tempDir.getPath()+"/"+className.replace('.', '/')+".class");
+		File tempDir = temporaryDir();
+		writeClassFileOnPath(className, clazz, tempDir);
+		return tempDir;
+	}
+	
+	private void writeClassFileOnPath(String className, InputStream clazzByteCode,
+			File path) throws IOException, FileNotFoundException {
+		File classFile = new File(path.getPath()+"/"+className.replace('.', '/')+".class");
 		classFile.getParentFile().mkdirs();
 		classFile.createNewFile();
 		FileOutputStream writer = new FileOutputStream(classFile);
 		int b = 0;
-		while((b = clazz.read()) != -1) writer.write(b);
+		while((b = clazzByteCode.read()) != -1) writer.write(b);
 		writer.close();
+	}
+	
+	// TODO: should tempdir be unique for the driver?
+	private File temporaryDir() throws IOException {
+		File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime());
+		tempDir.delete(); // Delete temp file
+		tempDir.mkdir();  // and transform it to a directory
 		return tempDir;
 	}
 	
-	public File packageJarFor(Class<?> clazz) throws IOException {
-		File classPath = createClassFileDir(clazz.getName(),findClass(clazz));
+	public File packageJarFor(Class<?> clazz) throws Exception {
+		File path = temporaryDir();
+		Set<Class<?>> processedClasses = new HashSet<Class<?>>();
+		packageClass(clazz, path, processedClasses);
+		
 		File jar =  File.createTempFile("uExeJar", ""+System.nanoTime());
 		final ZipOutputStream zos = new ZipOutputStream( new FileOutputStream( jar ) );
-		zip(classPath, classPath, zos);
+		zip(path, path, zos);
 		zos.close();
 		return jar;
+	}
+	
+	private void packageClass(Class<?> clazz, File path, Set<Class<?>> processedClasses) throws IOException,
+			FileNotFoundException, ClassNotFoundException {
+		if (!processedClasses.contains(clazz)){
+			processedClasses.add(clazz);
+			writeClassFileOnPath(clazz.getName(),findClass(clazz), path);
+			
+			final JavaClass rClazz = Repository.lookupClass(clazz);
+			
+			for (Field f:rClazz.getFields()){
+				if (!(f.getType() instanceof BasicType)	){ 
+					final Class<?> type = Class.forName(f.getType().toString());
+					if (findClass(type) != null) // found
+						packageClass(type, path,processedClasses);
+				}
+			}
+			
+			for (JavaClass sClazz : rClazz.getSuperClasses()){
+				final Class<?> type = Class.forName(sClazz.getClassName());
+				if (findClass(type) != null) // found
+					packageClass(type, path, processedClasses);
+			}
+			
+			for (JavaClass sClazz : rClazz.getInterfaces()){
+				final Class<?> type = Class.forName(sClazz.getClassName());
+				if (findClass(type) != null) // found
+					packageClass(type, path, processedClasses);
+			}
+			
+			for (Method method : rClazz.getMethods()){
+				for (Type t :method.getArgumentTypes()){
+					if (!(t instanceof BasicType)	){ 
+						final Class<?> type = Class.forName(t.toString());
+						if (findClass(type) != null) // found
+							packageClass(type, path, processedClasses);
+					}
+				}
+				
+				if (!(method.getReturnType() instanceof BasicType)	){ 
+					final Class<?> type = Class.forName(method.getReturnType().toString());
+					if (findClass(type) != null) // found
+						packageClass(type, path, processedClasses);
+				}
+			}
+		}
 	}
 
 	void zip(File directory, File base, ZipOutputStream zos) throws IOException {

@@ -61,20 +61,20 @@ public class ExecutionDriver implements UosDriver {
 		driver.addService("remoteExecution").addParameter("code", ParameterType.MANDATORY);
 		driver.addService("executeAgent");
 		toolbox = new ClassToolbox(); //TODO: should be able to inject
-		toolbox.addJar2BlackList("junit-3.8.1.jar");
-		toolbox.addJar2BlackList("junit-4.9.jar");
-		toolbox.addJar2BlackList("log4j-1.2.16.jar");
-		toolbox.addJar2BlackList("log4j-1.2.14.jar");
-		toolbox.addJar2BlackList("hsqldb-1.8.0.10.jar");
-		toolbox.addJar2BlackList("hsqldb-1.8.0.7.jar");
-		toolbox.addJar2BlackList("owlapi-3.2.4.jar");
-		toolbox.addJar2BlackList("jcl-core-2.2.2.jar");
-		toolbox.addJar2BlackList("objenesis-1.1.jar");
-		toolbox.addJar2BlackList("cglib-nodep-2.2.jar");
-		toolbox.addJar2BlackList("HermiT-1.0.jar");
-		toolbox.addJar2BlackList("hamcrest-core-1.1.jar");
-		toolbox.addJar2BlackList("mockito-all-1.8.5.jar");
-		toolbox.addJar2BlackList("uos-core-2.2.0_DEV.jar");
+		toolbox.add2BlackList("junit-3.8.1.jar");
+		toolbox.add2BlackList("junit-4.9.jar");
+		toolbox.add2BlackList("log4j-1.2.16.jar");
+		toolbox.add2BlackList("log4j-1.2.14.jar");
+		toolbox.add2BlackList("hsqldb-1.8.0.10.jar");
+		toolbox.add2BlackList("hsqldb-1.8.0.7.jar");
+		toolbox.add2BlackList("owlapi-3.2.4.jar");
+		toolbox.add2BlackList("jcl-core-2.2.2.jar");
+		toolbox.add2BlackList("objenesis-1.1.jar");
+		toolbox.add2BlackList("cglib-nodep-2.2.jar");
+		toolbox.add2BlackList("HermiT-1.0.jar");
+		toolbox.add2BlackList("hamcrest-core-1.1.jar");
+		toolbox.add2BlackList("mockito-all-1.8.5.jar");
+		toolbox.add2BlackList("uos-core-2.2.0_DEV.jar");
 	}
 	
 	public ClassToolbox toolbox() {return toolbox;}

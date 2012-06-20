@@ -1,15 +1,10 @@
 package org.unbiquitous.driver.execution;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
-
-import java.io.Serializable;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.unbiquitous.driver.execution.ExecutionDriver;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 

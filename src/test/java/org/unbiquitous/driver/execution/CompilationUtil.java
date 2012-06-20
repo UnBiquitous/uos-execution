@@ -27,7 +27,7 @@ public class CompilationUtil {
 		return f;
 	}
 	
-	public static Class compileToClass(String source, String clazz) throws ClassNotFoundException {
+	public static Class<?> compileToClass(String source, String clazz) throws ClassNotFoundException {
 		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
 		JavaSourceCompiler.CompilationUnit unit = compiler.createCompilationUnit();
 		unit.addJavaSource(clazz, source);

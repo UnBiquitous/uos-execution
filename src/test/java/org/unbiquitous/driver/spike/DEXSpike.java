@@ -2,7 +2,6 @@ package org.unbiquitous.driver.spike;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,7 +49,7 @@ public class DEXSpike {
 			System.out.println(line);
 	}
 	
-	static File findClass(Class clazz) throws IOException {
+	static File findClass(Class<?> clazz) throws IOException {
 		String className = clazz.getName().replace('.', File.separatorChar);
 		for (String entryPath : System.getProperty("java.class.path").split(System.getProperty("path.separator"))) {
 			File entry = new File(entryPath);

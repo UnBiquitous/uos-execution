@@ -1,6 +1,8 @@
 package org.unbiquitous.driver.execution;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
 
 import java.io.File;
@@ -10,6 +12,8 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -83,8 +87,13 @@ public class ClassToolboxTest {
 	}
 
 	@Test public void mustNotFindClassesOnBlacklistedJars() throws Exception{
-		box.addJar2BlackList("luaj-jse-2.0.2.jar");
+		box.add2BlackList("luaj-jse-2.0.2.jar");
 		assertStream(null, box.findClass(Lua.class));
+	}
+	
+	@Test public void mustNotFindClassesOnBlacklistedPaths() throws Exception{
+		box.add2BlackList("/uos_core/target/classes");
+		assertStream(null, box.findClass(Gateway.class));
 	}
 	
 	@Test public void mustLoadAClassFromStream() throws Exception {
@@ -114,21 +123,81 @@ public class ClassToolboxTest {
 		assertEquals((Integer) (before + 1), AgentSpy.count);
 	}
 	
-	// TODO: handle jars and classes composition
+	@SuppressWarnings("unchecked")
 	@Test public void packageJarWithASingleAgentClass() throws Exception{
+		box.add2BlackList("uos-core-2.2.0_DEV.jar");
+		box.add2BlackList("/uos_core/target/classes");
 		File jar = box.packageJarFor(
 				org.unbiquitous.driver.execution.dummy.DummyAgent.class);
 		
 		assertNotNull(jar);
 
 		Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) new ZipFile(jar).entries();
-		ZipEntry entry = entries.nextElement();
-		assertEquals("org/unbiquitous/driver/execution/dummy/DummyAgent.class",
-																entry.getName());
-		assertFalse(entries.hasMoreElements());
 		
-//		assertEquals("Must go down as many levels",dummyPath.length,levels);
+		Set<String> expected = new HashSet<String>();
+		expected.add("org/unbiquitous/driver/execution/dummy/DummyAgent.class");
+		expected.add("org/unbiquitous/driver/execution/Agent.class");
+		
+		Set<String> received = new HashSet<String>();
+		
+		while(entries.hasMoreElements()){
+			ZipEntry entry = entries.nextElement();
+			received.add(entry.getName());
+		}
+		
+		assertEquals(expected,received);
 	}
+	
+	/**
+	 * This is a very complex testCase since we use the {@link MyJarAgent}
+	 * as the tested agent to be compared against the result, such class
+	 * is composed by several rules to be complied by the jar packaging method.
+	 * Such rules are:
+	 * 
+	 * - Must include the Atributes Classes
+	 * - Must include referenced Classes recursively
+	 * - Must ignore primites as classes.
+	 * - Must ignore JDK classes
+	 * - Must ignore blacklisted classes
+	 * - Must not fall into loops (CLasses referring same classes)
+	 * - Must include Superclasses
+	 * - Must include Interfaces
+	 * - Must include method parameters
+	 * - Must include method return types
+	 * - Must include constants types
+	 * TODO:
+	 * - Must include static fields and methods
+	 */
+	@SuppressWarnings("unchecked")
+	@Test public void packageJarWithAnAgentClassAndItsObjectAttributes() throws Exception{
+		box.add2BlackList("luaj-jse-2.0.2.jar");
+		File jar = box.packageJarFor(MyJarAgent.class);
+		
+		Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) new ZipFile(jar).entries();
+		
+		Set<String> expected = new HashSet<String>();
+		expected.add("org/unbiquitous/driver/execution/MyJarAgent.class");
+		expected.add("org/unbiquitous/driver/execution/JustAnAttributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/AnotherAtributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/JustACoolSuperclass.class");
+		expected.add("org/unbiquitous/driver/execution/JustANiceInterface.class");
+		expected.add("org/unbiquitous/driver/execution/JustAnotherNiceInterface.class");
+		expected.add("org/unbiquitous/driver/execution/AMethodParameter.class");
+		expected.add("org/unbiquitous/driver/execution/AMethodReturnType.class");
+		expected.add("org/unbiquitous/driver/execution/AConstantType.class");
+		expected.add("org/unbiquitous/driver/execution/AStaticReturnType.class");
+		
+		Set<String> received = new HashSet<String>();
+		
+		while(entries.hasMoreElements()){
+			ZipEntry entry = entries.nextElement();
+			received.add(entry.getName());
+		}
+		
+		assertEquals(expected,received);
+		
+	}
+	
 	//TODO: Agent class cannot be inner class and must be public
 	
 	
