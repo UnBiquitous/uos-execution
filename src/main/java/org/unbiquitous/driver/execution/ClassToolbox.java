@@ -39,88 +39,13 @@ import org.apache.bcel.generic.Type;
  */
 public class ClassToolbox {
 	
-	private Set<String> blacklist =  new HashSet<String>();
-	private Map<Class<?>,InputStream> cache =  new HashMap<Class<?>, InputStream>();
+	private ClassFinder finder = new ClassFinder();
 	
-	public void add2BlackList(String jarName) {	blacklist.add(jarName);}
-	public Set<String> blacklist(){ return blacklist;};
+	public void add2BlackList(String jarName) {	finder.blacklist.add(jarName);}
+	public Set<String> blacklist(){ return finder.blacklist;};
 	
 	protected InputStream findClass(Class<?> clazz) throws IOException {
-		
-		if (cache.containsKey(clazz)) return cache.get(clazz);
-		
-		String className = clazz.getName().replace('.', File.separatorChar);
-		for (String entryPath : System.getProperty("java.class.path")
-								.split(System.getProperty("path.separator"))) {
-			File entry = new File(entryPath);
-			if (entry.isDirectory() && !inBlackList(entry.getPath())){
-				File found = findClassFileOnDir(className, entry);
-				if (found != null)	{
-					final FileInputStream stream = new FileInputStream(found);
-					cache.put(clazz, stream);
-					return stream;
-				}
-			}else if (entry.getName().endsWith(".jar") && 
-						!inBlacklist(entry.getName())) {
-				InputStream result = findClassFileOnAJar(className, entry);
-				if (result != null) {
-					cache.put(clazz, result);
-					return result;
-				}
-			}
-		}
-		cache.put(clazz, null);
-		return null;
-	}
-
-	private boolean inBlackList(String path) {
-		for (String black : blacklist)
-			if (path.contains(black))	{
-				return true;
-			}
-		return false;
-	}
-	private boolean inBlacklist(String jarName) {
-		return blacklist.contains(jarName);
-	}
-
-	private InputStream findClassFileOnAJar(String className, File jar) throws FileNotFoundException, IOException {
-		ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(jar)));
-		ZipEntry j;
-		List<Byte> bytes = new ArrayList<Byte>();
-		while ((j = zis.getNextEntry()) != null) {
-			final int BUFFER = 2048;
-			byte data[] = new byte[BUFFER];
-			int count = 0;
-			while ((count = zis.read(data, 0, BUFFER)) != -1) {
-				if (j.getName().equals(className + ".class")) {
-					for (int i = 0; i < count; i++)
-						bytes.add(data[i]);
-				}
-			}
-			if (!bytes.isEmpty()) {
-				byte[] buf = new byte[bytes.size()];
-				for (int i = 0; i < bytes.size(); i++)
-					buf[i] = bytes.get(i);
-				zis.close();
-				return new ByteArrayInputStream(buf);
-			}
-
-		}
-		zis.close();
-		return null;
-	}
-
-	private File findClassFileOnDir(String classname, File entry) throws IOException{
-		if (entry.isDirectory()){
-			for (File child : entry.listFiles()){
-				File found = findClassFileOnDir(classname,child);
-				if (found != null)	return found;
-			}
-		}else if (entry.getPath().endsWith(classname+".class")){
-			return entry;
-	    }
-		return null;
+		return finder.findClass(clazz);
 	}
 	
 	//TODO: Check how to work this out when at android.
@@ -200,7 +125,96 @@ public class ClassToolbox {
 		return new JarPackager(this).packageJar(clazz, temporaryDir());
 	}
 	
-	
+}
+
+class ClassFinder {
+
+	protected Set<String> blacklist = new HashSet<String>();
+	protected Map<Class<?>, InputStream> cache = new HashMap<Class<?>, InputStream>();
+
+	protected InputStream findClass(Class<?> clazz) throws IOException {
+
+		if (cache.containsKey(clazz))
+			return cache.get(clazz);
+
+		String className = clazz.getName().replace('.', File.separatorChar);
+		for (String entryPath : System.getProperty("java.class.path").split(
+				System.getProperty("path.separator"))) {
+			File entry = new File(entryPath);
+			if (entry.isDirectory() && !inBlackList(entry.getPath())) {
+				File found = findClassFileOnDir(className, entry);
+				if (found != null) {
+					final FileInputStream stream = new FileInputStream(found);
+					cache.put(clazz, stream);
+					return stream;
+				}
+			} else if (entry.getName().endsWith(".jar")
+					&& !inBlacklist(entry.getName())) {
+				InputStream result = findClassFileOnAJar(className, entry);
+				if (result != null) {
+					cache.put(clazz, result);
+					return result;
+				}
+			}
+		}
+		cache.put(clazz, null);
+		return null;
+	}
+
+	private boolean inBlackList(String path) {
+		for (String black : blacklist)
+			if (path.contains(black)) {
+				return true;
+			}
+		return false;
+	}
+
+	private boolean inBlacklist(String jarName) {
+		return blacklist.contains(jarName);
+	}
+
+	private InputStream findClassFileOnAJar(String className, File jar)
+			throws FileNotFoundException, IOException {
+		ZipInputStream zis = new ZipInputStream(new BufferedInputStream(
+				new FileInputStream(jar)));
+		ZipEntry j;
+		List<Byte> bytes = new ArrayList<Byte>();
+		while ((j = zis.getNextEntry()) != null) {
+			final int BUFFER = 2048;
+			byte data[] = new byte[BUFFER];
+			int count = 0;
+			while ((count = zis.read(data, 0, BUFFER)) != -1) {
+				if (j.getName().equals(className + ".class")) {
+					for (int i = 0; i < count; i++)
+						bytes.add(data[i]);
+				}
+			}
+			if (!bytes.isEmpty()) {
+				byte[] buf = new byte[bytes.size()];
+				for (int i = 0; i < bytes.size(); i++)
+					buf[i] = bytes.get(i);
+				zis.close();
+				return new ByteArrayInputStream(buf);
+			}
+
+		}
+		zis.close();
+		return null;
+	}
+
+	private File findClassFileOnDir(String classname, File entry)
+			throws IOException {
+		if (entry.isDirectory()) {
+			for (File child : entry.listFiles()) {
+				File found = findClassFileOnDir(classname, child);
+				if (found != null)
+					return found;
+			}
+		} else if (entry.getPath().endsWith(classname + ".class")) {
+			return entry;
+		}
+		return null;
+	}
 }
 
 /*
@@ -228,71 +242,96 @@ class JarPackager {
 	protected void packageClass(Class<?> clazz, File path) throws IOException,
 			FileNotFoundException, ClassNotFoundException {
 		if (!processedClasses.contains(clazz)) {
+			final InputStream bytecode = toolbox.findClass(clazz);
+			if (bytecode == null) return; //cut not found classes
+			
 			processedClasses.add(clazz);
-			toolbox.writeClassFileOnPath(clazz.getName(), toolbox.findClass(clazz), path);
+			toolbox.writeClassFileOnPath(clazz.getName(), bytecode, path);
 
-			final JavaClass rClazz = Repository.lookupClass(clazz);
+			packageFields(clazz, path);
+			packageSuperclass(clazz, path);
+			packageInnerClasses(clazz, path);
+			packageInterfaces(clazz, path);
+			packageMethods(clazz, path);
+		}
+	}
 
-			for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
-				if (toolbox.findClass(f.getType()) != null){ // found
-					packageClass(f.getType(), path);
+	private void packageMethods(Class<?> clazz, File path)
+			throws ClassNotFoundException, IOException, FileNotFoundException {
+		final JavaClass rClazz = Repository.lookupClass(clazz);
+		for (Method method : rClazz.getMethods()) {
+			packageMethodArguments(path, method);
+			packageMethodLocalVariables(path, method);
+			packageMethodExceptions(path, method);
+			packageMethodReturnType(path, method);
+		}
+	}
+
+	private void packageMethodReturnType(File path, Method method)
+			throws IOException, FileNotFoundException, ClassNotFoundException {
+		if (!(method.getReturnType() instanceof BasicType)) {
+			packageClass(Class.forName(method.getReturnType().toString()), path);
+		}
+	}
+
+	private void packageMethodExceptions(File path, Method method)
+			throws IOException, FileNotFoundException, ClassNotFoundException {
+		if (method.getExceptionTable() != null){
+			for(String e:method.getExceptionTable().getExceptionNames()){
+				packageClass(Class.forName(e), path);
+			}
+		}
+	}
+
+	private void packageMethodLocalVariables(File path, Method method)
+			throws IOException, FileNotFoundException, ClassNotFoundException {
+		if (method.getLocalVariableTable() != null){
+			for (LocalVariable v : method.getLocalVariableTable()
+												.getLocalVariableTable()){
+				// signature is in the format Lorg/unbiquitous/driver/execution/AMethodParameter;
+				final String signature = v.getSignature();
+				if (signature.length() > 2 ){
+					String name = signature.substring(1,signature.length()-1)
+															.replace('/', '.');
+					packageClass(Class.forName(name), path);
 				}
 			}
+		}
+	}
 
-			if (clazz.getSuperclass() != null 
-					&& toolbox.findClass(clazz.getSuperclass()) != null) // found
-				packageClass(clazz.getSuperclass(), path);
-
-			for (Class<?> s : clazz.getDeclaredClasses()) {
-				if (toolbox.findClass(s) != null) // found
-						packageClass(s, path);
+	private void packageMethodArguments(File path, Method method)
+			throws IOException, FileNotFoundException, ClassNotFoundException {
+		for (Type t : method.getArgumentTypes()) {
+			if (!(t instanceof BasicType)) {
+				packageClass(Class.forName(t.toString()), path);
 			}
+		}
+	}
 
-			for (Class<?> i : clazz.getInterfaces()) {
-				if (toolbox.findClass(i) != null) // found
-					packageClass(i, path);
-			}
+	private void packageInterfaces(Class<?> clazz, File path)
+			throws IOException, FileNotFoundException, ClassNotFoundException {
+		for (Class<?> i : clazz.getInterfaces()) {
+			packageClass(i, path);
+		}
+	}
 
-			for (Method method : rClazz.getMethods()) {
-				for (Type t : method.getArgumentTypes()) {
-					if (!(t instanceof BasicType)) {
-						final Class<?> type = Class.forName(t.toString());
-						if (toolbox.findClass(type) != null) // found
-							packageClass(type, path);
-					}
-				}
+	private void packageInnerClasses(Class<?> clazz, File path)
+			throws IOException, FileNotFoundException, ClassNotFoundException {
+		for (Class<?> s : clazz.getDeclaredClasses()) {
+			packageClass(s, path);
+		}
+	}
 
-				if (method.getLocalVariableTable() != null){
-					for (LocalVariable v : method.getLocalVariableTable()
-														.getLocalVariableTable()){
-						// signature is in the format Lorg/unbiquitous/driver/execution/AMethodParameter;
-						final String signature = v.getSignature();
-						if (signature.length() > 2 ){
-							String name = signature
-											.substring(1,signature.length()-1)
-											.replace('/', '.');
-							Class<?> c = Class.forName(name);
-							if (toolbox.findClass(c) != null) // found
-								packageClass(c, path);
-						}
-					}
-				}
-				
-				if (method.getExceptionTable() != null){
-					for(String e:method.getExceptionTable().getExceptionNames()){
-						Class<?> c = Class.forName(e);
-						if (toolbox.findClass(c) != null) // found
-							packageClass(c, path);
-					}
-				}
-				
-				if (!(method.getReturnType() instanceof BasicType)) {
-					final Class<?> type = Class.forName(method.getReturnType()
-							.toString());
-					if (toolbox.findClass(type) != null) // found
-						packageClass(type, path);
-				}
-			}
+	private void packageSuperclass(Class<?> clazz, File path)
+			throws IOException, FileNotFoundException, ClassNotFoundException {
+		if (clazz.getSuperclass() != null) 
+			packageClass(clazz.getSuperclass(), path);
+	}
+
+	private void packageFields(Class<?> clazz, File path) throws IOException,
+			FileNotFoundException, ClassNotFoundException {
+		for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
+			packageClass(f.getType(), path);
 		}
 	}
 
