@@ -75,6 +75,8 @@ public class ExecutionDriver implements UosDriver {
 		toolbox.add2BlackList("hamcrest-core-1.1.jar");
 		toolbox.add2BlackList("mockito-all-1.8.5.jar");
 		toolbox.add2BlackList("uos-core-2.2.0_DEV.jar");
+		toolbox.add2BlackList("/uos_core/target/classes");
+		toolbox.add2BlackList("execution-1.0-SNAPSHOT.jar");
 	}
 	
 	public ClassToolbox toolbox() {return toolbox;}

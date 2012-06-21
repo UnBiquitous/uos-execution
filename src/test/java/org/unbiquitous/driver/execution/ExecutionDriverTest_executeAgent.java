@@ -68,7 +68,9 @@ public class ExecutionDriverTest_executeAgent {
 		dependencies.add("mockito-all-1.8.5.jar");
 		//TODO: how to handle if the versions changes or something is added
 		dependencies.add("uos-core-2.2.0_DEV.jar");
-		//TODO: must add myself
+		//TODO: must add myself dynamically
+		dependencies.add("/uos_core/target/classes");
+		dependencies.add("execution-1.0-SNAPSHOT.jar");
 		assertEquals(dependencies,driver.toolbox().blacklist());
 	}
 	
