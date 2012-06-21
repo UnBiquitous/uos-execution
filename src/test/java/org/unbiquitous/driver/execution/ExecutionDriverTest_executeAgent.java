@@ -8,12 +8,14 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToClass;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
+import static org.unbiquitous.driver.execution.CompilationUtil.compileToPath;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
@@ -22,6 +24,7 @@ import java.io.PipedOutputStream;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.zip.ZipOutputStream;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -131,6 +134,45 @@ public class ExecutionDriverTest_executeAgent {
 				new EventuallyAssert(){
 					public boolean assertion(){
 						return (Integer)(before+17) == AgentSpy.count;
+					}
+				});
+	}
+	
+	@Test public void runTheCalledAgentFromAjarFile() throws Exception{
+		final Integer before = AgentSpy.count;
+		
+		String source = 
+				"package org.unbiquitous.driver.execution;"
+			+	"import org.unbiquitous.driver.execution.MyAgent.AgentSpy;"
+			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
+			+	"public class Foo2 extends org.unbiquitous.driver.execution.Agent {"
+			+	"	int increment = 21;"
+			+	"	public void run(Gateway gateway){"
+			+	"		AgentSpy.count+=increment;"
+			+	"	}"
+			+	"}";
+		final String clazz = "org.unbiquitous.driver.execution.Foo2";
+		
+		
+		File path = compileToPath(new String[]{source},new String[]{clazz},tempDir);
+		System.out.println(path);
+//		File jar = folder.newFile("temp.jar");
+		File jar = File.createTempFile("temp", ".jar");
+		JarPackager packager = new JarPackager(new ClassToolbox());
+		final ZipOutputStream zos = new ZipOutputStream( new FileOutputStream( jar ) );
+		packager.zip(path, path, zos);
+		zos.close();
+		System.out.println(jar);
+		Class<?> c= compileToClass(source,clazz);
+		
+		executeFromJar((Serializable) c.newInstance(),new FileInputStream(jar));
+		
+		assertNull("No error should be found.",response.getError());
+		
+		assertEventuallyTrue("Must increment the SpyCount eventually",1000, 
+				new EventuallyAssert(){
+					public boolean assertion(){
+						return (Integer)(before+21) == AgentSpy.count;
 					}
 				});
 	}
@@ -260,19 +302,24 @@ public class ExecutionDriverTest_executeAgent {
 	}
 	
 	private void execute(Serializable a, final InputStream code, String clazz) throws Exception{
-		execute(a, code, clazz, false, false);
+		execute(a, code,null, clazz, false, false);
+	}
+
+	private void executeFromJar(Serializable a, final InputStream jar) throws Exception{
+		execute(a, null, jar, null, false, false);
 	}
 	
 	private void dontexecute(Serializable a) throws Exception{
-		execute(a, null, null, true, false);
+		execute(a, null,null, null, true, false);
 	}
 	
 	private void dontexecute(Serializable a, final InputStream code, String clazz) throws Exception{
-		execute(a, code, clazz, false, true);
+		execute(a, code,null, clazz, false, true);
 	}
 	
-	private void execute(Serializable a, final InputStream code, String clazz, 
-							boolean mustFailAgent, final boolean mustFailCode) throws Exception{
+	private void execute(Serializable a, final InputStream code, final InputStream jar,
+			String clazz, boolean mustFailAgent, final boolean mustFailCode) throws Exception{
+		
 		final PipedInputStream pipeForAgent = new PipedInputStream();
 		final DataInputStream agentStream = new DataInputStream(pipeForAgent);
 		PipedOutputStream whereToWriteAgent = new PipedOutputStream(pipeForAgent);
@@ -281,17 +328,24 @@ public class ExecutionDriverTest_executeAgent {
 		new ObjectOutputStream(agentSpy).writeObject(a);
 		final byte[] agentArray = agentSpy.toByteArray();
 		
-		driver.executeAgent(
-				new ServiceCall()
-					// These parameters remains a question since when the
-					// file or serialized object fail during transfer the 
-					// execution simply doesn't occur.
-					//
-					//.addParameter("agent_size",""+agentArray.length) should I?
-					//.addParameter("code_size",""+codeArray.length) should I?
-					.addParameter("class", clazz)
-					,
-				response,
+		final ServiceCall call = new ServiceCall();
+			// These parameters remains a question since when the
+			// file or serialized object fail during transfer the 
+			// execution simply doesn't occur.
+			//
+			//.addParameter("agent_size",""+agentArray.length) should I?
+			//.addParameter("code_size",""+codeArray.length) should I?
+		final InputStream bytecode;
+		if (clazz != null){
+			call.addParameter("class", clazz);
+			bytecode = code;
+		}else if (jar != null){
+			call.addParameter("jar", "true");
+			bytecode = jar;
+		}else{
+			bytecode = null;
+		}
+		driver.executeAgent(call,response,
 				new UOSMessageContext(){
 					public DataInputStream getDataInputStream() {	
 						return agentStream;	
@@ -305,7 +359,7 @@ public class ExecutionDriverTest_executeAgent {
 									final ByteArrayOutputStream codeSpy = 
 											new ByteArrayOutputStream();
 									int b;
-									while ((b = code.read()) != -1) codeSpy.write(b);
+									while ((b = bytecode.read()) != -1) codeSpy.write(b);
 									final byte[] codeArray = codeSpy.toByteArray();
 									ByteArrayInputStream baos = 
 											new ByteArrayInputStream(
@@ -313,7 +367,7 @@ public class ExecutionDriverTest_executeAgent {
 									return new DataInputStream(baos);
 								} catch (IOException e) {}
 							}else{
-								return new DataInputStream(code);
+								return new DataInputStream(bytecode);
 							}
 						}
 						return null;

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -127,11 +129,16 @@ public class ExecutionDriver implements UosDriver {
 			}
 			final DataInputStream agent = ctx.getDataInputStream();
 			final DataInputStream clazz;
-			final String className = call.getParameter("class");
+			
+			boolean hasJar = false;
+			String className = null;
+			if (call.getParameter("jar") != null) hasJar = true;
+			else	className = call.getParameter("class");
+			
 			//TODO: should receive the size of these guys so i could avoid ... 
 			//		caching problems. And even could check if the received data
 			//		is in accordance.
-			if (className != null){
+			if (hasJar || className != null){
 				clazz = ctx.getDataInputStream(1);
 			}else{
 				clazz = null;
@@ -160,6 +167,12 @@ public class ExecutionDriver implements UosDriver {
 				if (className != null){
 					while (clazz.available() == 0){}
 					loader = toolbox.load(className, clazz);
+				}else if (clazz != null){
+					System.out.println("nois?");
+					loader = toolbox.load(clazz);
+					for(URL u :((URLClassLoader)loader).getURLs()){
+						System.out.println(u);
+					}
 				}else{
 					loader = null;
 				}
@@ -171,6 +184,7 @@ public class ExecutionDriver implements UosDriver {
 						try{
 							return loader.loadClass(desc.getName());
 						}catch(Exception e){
+							System.out.println("pala? "+e);
 							return super.resolveClass(desc);
 						}
 					}

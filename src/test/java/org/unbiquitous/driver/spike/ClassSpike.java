@@ -44,7 +44,24 @@ public class ClassSpike {
 		printProp(properties, "java.vm.specification.vendor");
 		printProp(properties, "java.vm.specification.name");
 		System.out.println();
-		System.out.println();
+		System.out.println(System.getenv("ANDROID_HOME"));
+		System.out.println("Stack");
+		Runnable r = new Runnable() {
+			public void run() {
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						for(StackTraceElement s : Thread.currentThread().getStackTrace()){
+							System.out.println("\t"+s);
+							System.out.println("\t\t"+s.getMethodName());
+							System.out.println("\t\t"+s.getClassName());
+						}
+					}
+				};
+				r.run();
+			}
+		};
+		r.run();
 //		for(Object key :properties.keySet()){
 //			printProp(properties, key.toString());
 //		}

@@ -146,7 +146,7 @@ public class ClassToolboxTest {
 										"org.unbiquitous.driver.execution.Child"}, 
 									tempDir);
 		
-		File jar = new File(path.getPath()+"/temp.jar");
+		File jar = folder.newFile("temp.jar");
 		JarPackager packager = new JarPackager(box);
 		final ZipOutputStream zos = new ZipOutputStream( new FileOutputStream( jar ) );
 		packager.zip(path, path, zos);
