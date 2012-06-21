@@ -46,8 +46,6 @@ public class ClassToolboxTest {
 	}
 	
 	// TODO: handle android optimization
-	// TODO: Tempfolder and stuff like that will need to be parametized for Android
-	// TODO: Android uses another classloading strategy
 	@Test
 	public void findsAClassInTheSourceFolder() throws Exception {
 		String pkgRoot = "org/unbiquitous/driver/execution/";

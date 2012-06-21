@@ -58,4 +58,6 @@ class AMethodReturnType{}
 class AConstantType{}
 class AStaticReturnType{}
 class AInnerMethodUsedType{}
-class AnException extends Exception{}
+class AnException extends Exception{
+	private static final long serialVersionUID = 1L;
+}

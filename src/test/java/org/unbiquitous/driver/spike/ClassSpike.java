@@ -1,5 +1,9 @@
 package org.unbiquitous.driver.spike;
 
+import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.util.Properties;
+
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
 import org.apache.bcel.Repository;
@@ -19,12 +23,80 @@ public class ClassSpike {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
+		dependencyDiscovery();
+		final Properties properties = System.getProperties();
+		System.out.println("MyNameIs:"+InetAddress.getLocalHost().getHostName());
+		printProp(properties, "os.arch");
+		printProp(properties, "os.name");
+		printProp(properties, "os.version");
+		printProp(properties, "user.dir");
+		printProp(properties, "user.name");
+		printProp(properties, "user.home");
+		System.out.println();
+		printProp(properties, "java.version");
+		printProp(properties, "java.specification.version");
+		printProp(properties, "java.specification.vendor");
+		printProp(properties, "java.specification.name");///////////////
+		printProp(properties, "java.vm.version");
+		printProp(properties, "java.vm.vendor");
+		printProp(properties, "java.vm.name");
+		printProp(properties, "java.vm.specification.version");
+		printProp(properties, "java.vm.specification.vendor");
+		printProp(properties, "java.vm.specification.name");
+		System.out.println();
+		System.out.println();
+//		for(Object key :properties.keySet()){
+//			printProp(properties, key.toString());
+//		}
+	}
+
+	private static void printProp(final Properties properties, final String prop) {
+		System.out.println(prop+":"+properties.getProperty(prop));
+	}
+
+	private static void dependencyDiscovery() throws ClassNotFoundException,
+			NoSuchMethodException, IllegalAccessException,
+			InvocationTargetException {
 		final Class<MyJarAgent> evaluatedClass = MyJarAgent.class;
+		
+		bcelWay(evaluatedClass);
+		reflectionWay(evaluatedClass);
+	}
+
+	private static void reflectionWay(final Class<MyJarAgent> evaluatedClass) {
 		final Class<?>[] declaredClasses = evaluatedClass.getDeclaredClasses();
 		System.out.println(declaredClasses.length);
 		for (Class<?> c :declaredClasses)
 			System.out.println(c);
+		System.out.println("other way inner");
+		for(Class<?> c :evaluatedClass.getDeclaredClasses()){
+			System.out.println(c);
+		}
 		
+		System.out.println("super:"+evaluatedClass.getSuperclass());
+		System.out.println("i:");
+		for(Class<?> i :evaluatedClass.getInterfaces()){
+			System.out.println("\t"+i);
+		}
+		System.out.println("a:");
+		for(java.lang.reflect.Field f :evaluatedClass.getDeclaredFields()){
+			System.out.println("\t"+f);
+			System.out.println("\t\t"+f.getType());
+			System.out.println("\t\t"+f.getGenericType());
+			System.out.println("\t\t"+(f.getType() instanceof Object));
+		}
+		System.out.println("m:");
+		for (java.lang.reflect.Method m:evaluatedClass.getMethods()){
+			System.out.println("\t"+m.getName());
+			for(Class<?> p: m.getParameterTypes()){
+				System.out.println("\t\t"+p);
+			}
+			System.out.println("\tr\t"+m.getReturnType());
+		}
+	}
+
+	private static void bcelWay(final Class<MyJarAgent> evaluatedClass)
+			throws ClassNotFoundException {
 		final JavaClass clazz = Repository.lookupClass(evaluatedClass);
 		final ClassFile clazzFile = Repository.lookupClassFile(evaluatedClass.getName());
 		System.out.println(clazzFile.getPath());
@@ -73,49 +145,6 @@ public class ClassSpike {
 				}
 			}
 		}
-		
-		System.out.println("other way inner");
-		for(Class<?> c :evaluatedClass.getDeclaredClasses()){
-			System.out.println(c);
-		}
-		
-		System.out.println("super:"+evaluatedClass.getSuperclass());
-		System.out.println("i:");
-		for(Class<?> i :evaluatedClass.getInterfaces()){
-			System.out.println("\t"+i);
-		}
-		System.out.println("a:");
-		for(java.lang.reflect.Field f :evaluatedClass.getDeclaredFields()){
-			System.out.println("\t"+f);
-			System.out.println("\t\t"+f.getType());
-			System.out.println("\t\t"+f.getGenericType());
-			System.out.println("\t\t"+(f.getType() instanceof Object));
-		}
-		System.out.println("m:");
-		for (java.lang.reflect.Method m:evaluatedClass.getMethods()){
-			System.out.println("\t"+m.getName());
-			for(Class<?> p: m.getParameterTypes()){
-				System.out.println("\t\t"+p);
-			}
-			System.out.println("\tr\t"+m.getReturnType());
-		}
-		
-		
-		
-		String source = "package org.unbiquitous.driver.execution;"
-				+ "public class Foo extends org.unbiquitous.driver.execution.MyAgent {"
-				+ "public int plusOne(Integer i){" + "	return i+1;" + "}" + "}";
-
-		String clazz2 = "org.unbiquitous.driver.execution.Foo";
-		JavaSourceCompiler compiler = new JavaSourceCompilerImpl();
-		JavaSourceCompiler.CompilationUnit unit = compiler.createCompilationUnit();
-		unit.addJavaSource(clazz2, source);
-		ClassLoader loader = compiler.compile(System.class.getClassLoader(), unit);
-		
-		final Class<?> repo = loader.loadClass(Repository.class.getName());
-		final java.lang.reflect.Method lookup = repo.getMethod("lookupClass", String.class);
-		System.out.println(lookup.invoke(null, new Object[]{clazz2}));
-		
 	}
 
 }

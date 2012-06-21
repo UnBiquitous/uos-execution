@@ -21,10 +21,8 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.bcel.Repository;
-import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LocalVariable;
-import org.apache.bcel.classfile.LocalVariableTable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.Type;
@@ -38,15 +36,45 @@ import org.apache.bcel.generic.Type;
  *
  */
 public class ClassToolbox {
+	/*
+	 * In the case of Android (Dalvik platform) the platform must be:
+	 * 
+	 * <createClassLoader>
+	 *  File folder = input.getParentFile();
+	 *  return new DexClassLoader(input,folder.getPath(),null, getClassLoader());
+	 * 
+	 * <createTempDir>
+	 *  File writableDir = getApplicationContext().getDir("temp", Context.MODE_WORLD_WRITEABLE);
+	 *	File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime(),writableDir);
+	 */
+	public static Platform platform = new Platform() {
+		ClassLoader createClassLoader(File input) throws Exception {
+			return new URLClassLoader(new URL[] { input.toURI().toURL() },
+										ClassLoader.getSystemClassLoader());
+		}
+		File createTempDir() throws IOException {
+			File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime());
+			tempDir.delete(); // Delete temp file
+			tempDir.mkdir();  // and transform it to a directory
+			return tempDir;
+		}
+	}; 
+	
+	public abstract static class Platform{
+		abstract ClassLoader createClassLoader(File input) throws Exception;
+		abstract File createTempDir() throws Exception;
+	}
 	
 	private ClassFinder finder = new ClassFinder();
 	
 	public void add2BlackList(String jarName) {	finder.blacklist.add(jarName);}
 	public Set<String> blacklist(){ return finder.blacklist;};
+
 	
 	protected InputStream findClass(Class<?> clazz) throws IOException {
 		return finder.findClass(clazz);
 	}
+	
 	
 	//TODO: Check how to work this out when at android.
 	/*
@@ -59,15 +87,14 @@ public class ClassToolbox {
 	 */
 	protected ClassLoader load(String className, InputStream clazz) throws Exception {
 		File classDir = createClassFileDir(className, clazz);
-		return new URLClassLoader(new URL[] { classDir.toURI().toURL() },ClassLoader.getSystemClassLoader());
+		return platform.createClassLoader(classDir);
 //		addPathToClassLoader(classDir);
 	}
 
 	protected ClassLoader load(InputStream jar) throws Exception{
 		File tempJar = File.createTempFile("uExeTmp.jar", ""+System.nanoTime());
-		System.out.println(tempJar);
 		writeOnFile(jar, tempJar);
-		return new URLClassLoader(new URL[] { tempJar.toURI().toURL() },ClassLoader.getSystemClassLoader());
+		return platform.createClassLoader(tempJar);
 	}
 	
 //	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -90,9 +117,8 @@ public class ClassToolbox {
 //										codeArray, 0, codeArray.length })
 //	}
 
-	private File createClassFileDir(String className, InputStream clazz)
-			throws IOException, FileNotFoundException {
-		File tempDir = temporaryDir();
+	private File createClassFileDir(String className, InputStream clazz)throws Exception {
+		File tempDir = platform.createTempDir();
 		writeClassFileOnPath(className, clazz, tempDir);
 		return tempDir;
 	}
@@ -113,16 +139,8 @@ public class ClassToolbox {
 		writer.close();
 	}
 	
-	// TODO: should tempdir be unique for the driver?
-	private File temporaryDir() throws IOException {
-		File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime());
-		tempDir.delete(); // Delete temp file
-		tempDir.mkdir();  // and transform it to a directory
-		return tempDir;
-	}
-	
 	public File packageJarFor(Class<?> clazz) throws Exception {
-		return new JarPackager(this).packageJar(clazz, temporaryDir());
+		return new JarPackager(this).packageJar(clazz, platform.createTempDir());
 	}
 	
 }
