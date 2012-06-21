@@ -10,6 +10,10 @@ public class MyJarAgent
 	
 	private static final AConstantType constant= null;
 	
+	class Inner{
+		private int attribute;
+	}
+	
 	// Ingored primitive attributes
 	private boolean ignoreBool;
 	private byte ignoreByte;
@@ -30,6 +34,8 @@ public class MyJarAgent
 	private void doNothing(AMethodParameter a, int ignored){}
 	private AMethodReturnType doNothingAgain(){ return null;}
 	public static AStaticReturnType doNothingStatic(){ return null;}
+	public void innerParameter(){ AInnerMethodUsedType type = null;}
+	public void thrower() throws AnException{}
 }
 
 @SuppressWarnings("unused")
@@ -51,3 +57,5 @@ class AMethodParameter{}
 class AMethodReturnType{}
 class AConstantType{}
 class AStaticReturnType{}
+class AInnerMethodUsedType{}
+class AnException extends Exception{}

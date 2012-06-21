@@ -168,8 +168,9 @@ public class ClassToolboxTest {
 	 * - Must include method return types
 	 * - Must include constants types
 	 * - Must include static fields and methods
-	 * TODO:
 	 * - Must include inner classes
+	 * - Must include parameter variables types
+	 * - Must include thrown Exceptions
 	 */
 	@SuppressWarnings("unchecked")
 	@Test public void packageJarWithAnAgentClassAndItsObjectAttributes() throws Exception{
@@ -189,6 +190,9 @@ public class ClassToolboxTest {
 		expected.add("org/unbiquitous/driver/execution/AMethodReturnType.class");
 		expected.add("org/unbiquitous/driver/execution/AConstantType.class");
 		expected.add("org/unbiquitous/driver/execution/AStaticReturnType.class");
+		expected.add("org/unbiquitous/driver/execution/MyJarAgent$Inner.class");
+		expected.add("org/unbiquitous/driver/execution/AInnerMethodUsedType.class");
+		expected.add("org/unbiquitous/driver/execution/AnException.class");
 		
 		Set<String> received = new HashSet<String>();
 		

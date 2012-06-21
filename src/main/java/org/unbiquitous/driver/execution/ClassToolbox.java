@@ -11,8 +11,10 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -21,6 +23,8 @@ import java.util.zip.ZipOutputStream;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.LocalVariable;
+import org.apache.bcel.classfile.LocalVariableTable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.Type;
@@ -36,26 +40,36 @@ import org.apache.bcel.generic.Type;
 public class ClassToolbox {
 	
 	private Set<String> blacklist =  new HashSet<String>();
+	private Map<Class<?>,InputStream> cache =  new HashMap<Class<?>, InputStream>();
 	
 	public void add2BlackList(String jarName) {	blacklist.add(jarName);}
 	public Set<String> blacklist(){ return blacklist;};
 	
 	protected InputStream findClass(Class<?> clazz) throws IOException {
+		
+		if (cache.containsKey(clazz)) return cache.get(clazz);
+		
 		String className = clazz.getName().replace('.', File.separatorChar);
 		for (String entryPath : System.getProperty("java.class.path")
 								.split(System.getProperty("path.separator"))) {
 			File entry = new File(entryPath);
 			if (entry.isDirectory() && !inBlackList(entry.getPath())){
 				File found = findClassFileOnDir(className, entry);
-				if (found != null)	return new FileInputStream(found);
+				if (found != null)	{
+					final FileInputStream stream = new FileInputStream(found);
+					cache.put(clazz, stream);
+					return stream;
+				}
 			}else if (entry.getName().endsWith(".jar") && 
 						!inBlacklist(entry.getName())) {
 				InputStream result = findClassFileOnAJar(className, entry);
 				if (result != null) {
+					cache.put(clazz, result);
 					return result;
 				}
 			}
 		}
+		cache.put(clazz, null);
 		return null;
 	}
 
@@ -79,7 +93,7 @@ public class ClassToolbox {
 			byte data[] = new byte[BUFFER];
 			int count = 0;
 			while ((count = zis.read(data, 0, BUFFER)) != -1) {
-				if (j.getName().endsWith(className + ".class")) {
+				if (j.getName().equals(className + ".class")) {
 					for (int i = 0; i < count; i++)
 						bytes.add(data[i]);
 				}
@@ -202,24 +216,24 @@ class JarPackager {
 
 			final JavaClass rClazz = Repository.lookupClass(clazz);
 
-			for (Field f : rClazz.getFields()) {
-				if (!(f.getType() instanceof BasicType)) {
-					final Class<?> type = Class.forName(f.getType().toString());
-					if (toolbox.findClass(type) != null) // found
-						packageClass(type, path);
+			for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
+				if (toolbox.findClass(f.getType()) != null){ // found
+					packageClass(f.getType(), path);
 				}
 			}
 
-			for (JavaClass sClazz : rClazz.getSuperClasses()) {
-				final Class<?> type = Class.forName(sClazz.getClassName());
-				if (toolbox.findClass(type) != null) // found
-					packageClass(type, path);
+			if (clazz.getSuperclass() != null 
+					&& toolbox.findClass(clazz.getSuperclass()) != null) // found
+				packageClass(clazz.getSuperclass(), path);
+
+			for (Class<?> s : clazz.getDeclaredClasses()) {
+				if (toolbox.findClass(s) != null) // found
+						packageClass(s, path);
 			}
 
-			for (JavaClass sClazz : rClazz.getInterfaces()) {
-				final Class<?> type = Class.forName(sClazz.getClassName());
-				if (toolbox.findClass(type) != null) // found
-					packageClass(type, path);
+			for (Class<?> i : clazz.getInterfaces()) {
+				if (toolbox.findClass(i) != null) // found
+					packageClass(i, path);
 			}
 
 			for (Method method : rClazz.getMethods()) {
@@ -231,6 +245,30 @@ class JarPackager {
 					}
 				}
 
+				if (method.getLocalVariableTable() != null){
+					for (LocalVariable v : method.getLocalVariableTable()
+														.getLocalVariableTable()){
+						// signature is in the format Lorg/unbiquitous/driver/execution/AMethodParameter;
+						final String signature = v.getSignature();
+						if (signature.length() > 2 ){
+							String name = signature
+											.substring(1,signature.length()-1)
+											.replace('/', '.');
+							Class<?> c = Class.forName(name);
+							if (toolbox.findClass(c) != null) // found
+								packageClass(c, path);
+						}
+					}
+				}
+				
+				if (method.getExceptionTable() != null){
+					for(String e:method.getExceptionTable().getExceptionNames()){
+						Class<?> c = Class.forName(e);
+						if (toolbox.findClass(c) != null) // found
+							packageClass(c, path);
+					}
+				}
+				
 				if (!(method.getReturnType() instanceof BasicType)) {
 					final Class<?> type = Class.forName(method.getReturnType()
 							.toString());
