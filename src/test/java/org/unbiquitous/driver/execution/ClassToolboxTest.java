@@ -4,9 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
+import static org.unbiquitous.driver.execution.CompilationUtil.compileToPath;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -16,6 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,6 +47,7 @@ public class ClassToolboxTest {
 	
 	// TODO: handle android optimization
 	// TODO: Tempfolder and stuff like that will need to be parametized for Android
+	// TODO: Android uses another classloading strategy
 	@Test
 	public void findsAClassInTheSourceFolder() throws Exception {
 		String pkgRoot = "org/unbiquitous/driver/execution/";
@@ -123,7 +127,45 @@ public class ClassToolboxTest {
 		assertEquals((Integer) (before + 1), AgentSpy.count);
 	}
 	
-	//TODO:mustLoadAClassFromJar
+	@Test public void mustLoadClassesFromJar() throws Exception {
+		
+		String parentSrc = 
+				"package org.unbiquitous.driver.execution;"
+			+	"public class Parent{"
+			+	"	public int two(){return 2;}"
+			+	"}";
+		
+		String childSrc = 
+				"package org.unbiquitous.driver.execution;"
+			+	"public class Child extends Parent{"
+			+	"	public int three(){return two()+1;}"
+			+	"}";
+		
+		
+		File path = compileToPath(new String[]{parentSrc, childSrc}, 
+									new String[]{
+										"org.unbiquitous.driver.execution.Parent", 
+										"org.unbiquitous.driver.execution.Child"}, 
+									tempDir);
+		
+		File jar = new File(path.getPath()+"/temp.jar");
+		JarPackager packager = new JarPackager(box);
+		final ZipOutputStream zos = new ZipOutputStream( new FileOutputStream( jar ) );
+		packager.zip(path, path, zos);
+		zos.close();
+		
+		
+		ClassLoader loader = box.load(new FileInputStream(jar));
+		
+		assertEquals("default ClassLoader must me URLClassLoader.",
+				URLClassLoader.class, loader.getClass());
+		
+		Object o = loader.loadClass("org.unbiquitous.driver.execution.Child")
+				.newInstance();
+		
+		Method plusOne = o.getClass().getMethod("three");
+		assertEquals(3, plusOne.invoke(o, new Object[]{}));
+	}
 	
 	@SuppressWarnings("unchecked")
 	@Test public void packageJarWithASingleAgentClass() throws Exception{
@@ -204,9 +246,6 @@ public class ClassToolboxTest {
 		assertEquals(expected,received);
 		
 	}
-	
-	//TODO: Agent class cannot be inner class and must be public
-	
 	
 	private void assertStream(InputStream expected, InputStream dummyClass)
 			throws IOException {

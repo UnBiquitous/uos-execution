@@ -240,6 +240,7 @@ public class ExecutionDriverTest_executeAgent {
 	//TODO? Do we need to control the execution of the Agent.
 	//TODO: Agent must be able to request to move itself
 	//TODO: must to the move of the agent like at MoveSpike.moveTo
+	//TODO: Agent class cannot be inner class and must be public
 	
 	static interface EventuallyAssert{
 		boolean assertion();

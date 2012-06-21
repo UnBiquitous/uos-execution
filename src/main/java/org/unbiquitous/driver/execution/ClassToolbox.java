@@ -138,6 +138,13 @@ public class ClassToolbox {
 //		addPathToClassLoader(classDir);
 	}
 
+	protected ClassLoader load(InputStream jar) throws Exception{
+		File tempJar = File.createTempFile("uExeTmp.jar", ""+System.nanoTime());
+		System.out.println(tempJar);
+		writeOnFile(jar, tempJar);
+		return new URLClassLoader(new URL[] { tempJar.toURI().toURL() },ClassLoader.getSystemClassLoader());
+	}
+	
 //	@SuppressWarnings({ "rawtypes", "unchecked" })
 //	private void addPathToClassLoader(File classDir)
 //			throws NoSuchMethodException, IllegalAccessException,
@@ -170,6 +177,11 @@ public class ClassToolbox {
 		File classFile = new File(path.getPath()+"/"+className.replace('.', '/')+".class");
 		classFile.getParentFile().mkdirs();
 		classFile.createNewFile();
+		writeOnFile(clazzByteCode, classFile);
+	}
+	
+	private void writeOnFile(InputStream clazzByteCode, File classFile)
+			throws FileNotFoundException, IOException {
 		FileOutputStream writer = new FileOutputStream(classFile);
 		int b = 0;
 		while((b = clazzByteCode.read()) != -1) writer.write(b);
@@ -191,6 +203,11 @@ public class ClassToolbox {
 	
 }
 
+/*
+ * I could use http://code.google.com/p/java-dependency-resolver/
+ * but using BCEL i was able to bypass the limitations of reflections regarding
+ * non-public methods and its inner properties
+ */
 class JarPackager {
 	
 	ClassToolbox toolbox;
