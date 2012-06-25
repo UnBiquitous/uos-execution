@@ -17,6 +17,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
@@ -46,6 +47,7 @@ public class ClassToolboxTest {
 	}
 	
 	// TODO: handle android optimization
+	// TODO: handle resources
 	@Test
 	public void findsAClassInTheSourceFolder() throws Exception {
 		String pkgRoot = "org/unbiquitous/driver/execution/";
@@ -196,9 +198,9 @@ public class ClassToolboxTest {
 	 * is composed by several rules to be complied by the jar packaging method.
 	 * Such rules are:
 	 * 
-	 * - Must include the Atributes Classes
+	 * - Must include the Attributes Classes
 	 * - Must include referenced Classes recursively
-	 * - Must ignore primites as classes.
+	 * - Must ignore primitives as classes.
 	 * - Must ignore JDK classes
 	 * - Must ignore blacklisted classes
 	 * - Must not fall into loops (CLasses referring same classes)
@@ -211,13 +213,16 @@ public class ClassToolboxTest {
 	 * - Must include inner classes
 	 * - Must include parameter variables types
 	 * - Must include thrown Exceptions
+	 * - Must handle array types in Attributes
+	 * - Must handle array types in parameters
+	 * - Must handle array types in return 
+	 * - Must handle primitive types in arrays
+	 * TODO:
+	 * - Must handle generic referenced types
 	 */
-	@SuppressWarnings("unchecked")
 	@Test public void packageJarWithAnAgentClassAndItsObjectAttributes() throws Exception{
 		box.add2BlackList("luaj-jse-2.0.2.jar");
 		File jar = box.packageJarFor(MyJarAgent.class);
-		
-		Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) new ZipFile(jar).entries();
 		
 		Set<String> expected = new HashSet<String>();
 		expected.add("org/unbiquitous/driver/execution/MyJarAgent.class");
@@ -233,16 +238,49 @@ public class ClassToolboxTest {
 		expected.add("org/unbiquitous/driver/execution/MyJarAgent$Inner.class");
 		expected.add("org/unbiquitous/driver/execution/AInnerMethodUsedType.class");
 		expected.add("org/unbiquitous/driver/execution/AnException.class");
+		expected.add("org/unbiquitous/driver/execution/JustAnArrayAtributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/JustAnMultiArrayAtributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/AMethodArrayParameter.class");
+		expected.add("org/unbiquitous/driver/execution/AMethodArrayReturnType.class");
+//		expected.add("org/unbiquitous/driver/execution/JustAGenericReferencedAtributeClass.class");
 		
-		Set<String> received = new HashSet<String>();
+		assertEquals(expected,zipEntries(jar));
+		
+	}
+	
+	@Test public void packageAlwaysTheSameJar() throws Exception{
+		ClassToolbox box1 = new ClassToolbox();
+		box1.add2BlackList("luaj-jse-2.0.2.jar");
+		File jar1 = box1.packageJarFor(MyJarAgent.class);
+		ClassToolbox box2 = new ClassToolbox();
+		box2.add2BlackList("luaj-jse-2.0.2.jar");
+		File jar2_1 = box2.packageJarFor(MyJarAgent.class);
+		File jar2_2 = box2.packageJarFor(MyJarAgent.class);
+		
+		Set<String> set1 = zipEntries(jar1);
+		Set<String> set2_1 = zipEntries(jar2_1);
+		Set<String> set2_2 = zipEntries(jar2_2);
+		
+		assertEquals(jar1.length(),jar2_1.length());	
+		// They are different bytes, but with the same content
+//		assertStream(new FileInputStream(jar1),new FileInputStream(jar2_1));
+		assertEquals(set1,set2_1);
+		assertEquals(jar2_1.length(),jar2_2.length());	
+//		assertStream(new FileInputStream(jar2_1),new FileInputStream(jar2_2));
+		assertEquals(set2_1,set2_2);	
+	}
+
+	@SuppressWarnings("unchecked")
+	private Set<String> zipEntries(File jar) throws ZipException, IOException {
+		Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) 
+													new ZipFile(jar).entries();
+		Set<String> set = new HashSet<String>();
 		
 		while(entries.hasMoreElements()){
 			ZipEntry entry = entries.nextElement();
-			received.add(entry.getName());
+			set.add(entry.getName());
 		}
-		
-		assertEquals(expected,received);
-		
+		return set;
 	}
 	
 	private void assertStream(InputStream expected, InputStream dummyClass)

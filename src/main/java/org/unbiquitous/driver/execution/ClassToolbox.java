@@ -11,10 +11,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -24,6 +22,7 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LocalVariable;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.Type;
 
@@ -148,12 +147,14 @@ public class ClassToolbox {
 class ClassFinder {
 
 	protected Set<String> blacklist = new HashSet<String>();
-	protected Map<Class<?>, InputStream> cache = new HashMap<Class<?>, InputStream>();
+//	protected Map<Class<?>, InputStream> cache = new HashMap<Class<?>, InputStream>();
+	protected Set<Class<?>> notFoundCache = new HashSet<Class<?>>();
 
 	protected InputStream findClass(Class<?> clazz) throws IOException {
 
-		if (cache.containsKey(clazz))
-			return cache.get(clazz);
+//		if (cache.containsKey(clazz))
+//			return cache.get(clazz);
+		if (notFoundCache.contains(clazz)) return null;
 
 		String className = clazz.getName().replace('.', File.separatorChar);
 		for (String entryPath : System.getProperty("java.class.path").split(
@@ -163,19 +164,20 @@ class ClassFinder {
 				File found = findClassFileOnDir(className, entry);
 				if (found != null) {
 					final FileInputStream stream = new FileInputStream(found);
-					cache.put(clazz, stream);
+//					cache.put(clazz, stream);
 					return stream;
 				}
 			} else if (entry.getName().endsWith(".jar")
 					&& !inBlacklist(entry.getName())) {
 				InputStream result = findClassFileOnAJar(className, entry);
 				if (result != null) {
-					cache.put(clazz, result);
+//					cache.put(clazz, result);
 					return result;
 				}
 			}
 		}
-		cache.put(clazz, null);
+//		cache.put(clazz, null);
+		notFoundCache.add(clazz);
 		return null;
 	}
 
@@ -287,11 +289,27 @@ class JarPackager {
 
 	private void packageMethodReturnType(File path, Method method)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
-		if (!(method.getReturnType() instanceof BasicType)) {
-			packageClass(Class.forName(method.getReturnType().toString()), path);
-		}
+		packageBCELType(method.getReturnType(), path);
 	}
 
+	private void packageMethodArguments(File path, Method method)
+			throws IOException, FileNotFoundException, ClassNotFoundException {
+		for (Type t : method.getArgumentTypes()) {
+			packageBCELType(t, path);
+		}
+	}
+	
+	private void packageBCELType(Type t, File path)
+			throws IOException, FileNotFoundException, ClassNotFoundException {
+		if (!(t instanceof BasicType)) {
+			Type type = t;
+			while (type instanceof ArrayType)
+				type = ((ArrayType)type).getElementType();
+			if (!(type instanceof BasicType)) 
+				packageClass(Class.forName(type.toString()), path);
+		}
+	}
+	
 	private void packageMethodExceptions(File path, Method method)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
 		if (method.getExceptionTable() != null){
@@ -307,21 +325,13 @@ class JarPackager {
 			for (LocalVariable v : method.getLocalVariableTable()
 												.getLocalVariableTable()){
 				// signature is in the format Lorg/unbiquitous/driver/execution/AMethodParameter;
-				final String signature = v.getSignature();
-				if (signature.length() > 2 ){
-					String name = signature.substring(1,signature.length()-1)
-															.replace('/', '.');
+				String name = v.getSignature()
+						.replaceAll("\\[", "") //get array root type
+						.replace('/', '.'); // change dash for dot
+				if (name.length() > 2 ){ // get rid of primitive types
+					name = name.substring(1,name.length()-1); // remove L
 					packageClass(Class.forName(name), path);
 				}
-			}
-		}
-	}
-
-	private void packageMethodArguments(File path, Method method)
-			throws IOException, FileNotFoundException, ClassNotFoundException {
-		for (Type t : method.getArgumentTypes()) {
-			if (!(t instanceof BasicType)) {
-				packageClass(Class.forName(t.toString()), path);
 			}
 		}
 	}
@@ -349,8 +359,15 @@ class JarPackager {
 	private void packageFields(Class<?> clazz, File path) throws IOException,
 			FileNotFoundException, ClassNotFoundException {
 		for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
-			packageClass(f.getType(), path);
+			Class<?> type = findRootTypeFromArrays(f); 
+			packageClass(type, path);
 		}
+	}
+
+	private Class<?> findRootTypeFromArrays(java.lang.reflect.Field f) {
+		Class<?> type = f.getType();
+		while(type.isArray())	type = type.getComponentType();
+		return type;
 	}
 
 	protected void zip(File directory, File base, ZipOutputStream zos) throws IOException {

@@ -2,10 +2,9 @@ package org.unbiquitous.driver.spike;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
-import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
-import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.Field;
@@ -14,9 +13,11 @@ import org.apache.bcel.classfile.InnerClasses;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LocalVariable;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.util.ClassPath.ClassFile;
 import org.unbiquitous.driver.execution.MyJarAgent;
 
+@SuppressWarnings("unused")
 public class ClassSpike {
 
 	/**
@@ -24,6 +25,34 @@ public class ClassSpike {
 	 */
 	public static void main(String[] args) throws Exception {
 		dependencyDiscovery();
+//		properyFun();
+//		threadStackFun();
+//		for(Object key :properties.keySet()){
+//			printProp(properties, key.toString());
+//		}
+	}
+
+	private static void threadStackFun() {
+		System.out.println("Stack");
+		Runnable r = new Runnable() {
+			public void run() {
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						for(StackTraceElement s : Thread.currentThread().getStackTrace()){
+							System.out.println("\t"+s);
+							System.out.println("\t\t"+s.getMethodName());
+							System.out.println("\t\t"+s.getClassName());
+						}
+					}
+				};
+				r.run();
+			}
+		};
+		r.run();
+	}
+
+	private static void properyFun() throws UnknownHostException {
 		final Properties properties = System.getProperties();
 		System.out.println("MyNameIs:"+InetAddress.getLocalHost().getHostName());
 		printProp(properties, "os.arch");
@@ -45,26 +74,6 @@ public class ClassSpike {
 		printProp(properties, "java.vm.specification.name");
 		System.out.println();
 		System.out.println(System.getenv("ANDROID_HOME"));
-		System.out.println("Stack");
-		Runnable r = new Runnable() {
-			public void run() {
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						for(StackTraceElement s : Thread.currentThread().getStackTrace()){
-							System.out.println("\t"+s);
-							System.out.println("\t\t"+s.getMethodName());
-							System.out.println("\t\t"+s.getClassName());
-						}
-					}
-				};
-				r.run();
-			}
-		};
-		r.run();
-//		for(Object key :properties.keySet()){
-//			printProp(properties, key.toString());
-//		}
 	}
 
 	private static void printProp(final Properties properties, final String prop) {
@@ -81,6 +90,7 @@ public class ClassSpike {
 	}
 
 	private static void reflectionWay(final Class<MyJarAgent> evaluatedClass) {
+		System.out.println("\n\n----------reflectionWay----------\n\n");
 		final Class<?>[] declaredClasses = evaluatedClass.getDeclaredClasses();
 		System.out.println(declaredClasses.length);
 		for (Class<?> c :declaredClasses)
@@ -91,18 +101,20 @@ public class ClassSpike {
 		}
 		
 		System.out.println("super:"+evaluatedClass.getSuperclass());
-		System.out.println("i:");
+		System.out.println("interfaces:");
 		for(Class<?> i :evaluatedClass.getInterfaces()){
 			System.out.println("\t"+i);
 		}
-		System.out.println("a:");
+		System.out.println("attributes:");
 		for(java.lang.reflect.Field f :evaluatedClass.getDeclaredFields()){
 			System.out.println("\t"+f);
 			System.out.println("\t\t"+f.getType());
+			System.out.println("\t\t\t"+f.getType().getComponentType());
 			System.out.println("\t\t"+f.getGenericType());
-			System.out.println("\t\t"+(f.getType() instanceof Object));
+			System.out.println("\t\t"+f.getModifiers());
+			System.out.println("\t\t"+f.getDeclaringClass());
 		}
-		System.out.println("m:");
+		System.out.println("methods:");
 		for (java.lang.reflect.Method m:evaluatedClass.getMethods()){
 			System.out.println("\t"+m.getName());
 			for(Class<?> p: m.getParameterTypes()){
@@ -114,6 +126,7 @@ public class ClassSpike {
 
 	private static void bcelWay(final Class<MyJarAgent> evaluatedClass)
 			throws ClassNotFoundException {
+		System.out.println("\n\n----------bcelWay----------\n\n");
 		final JavaClass clazz = Repository.lookupClass(evaluatedClass);
 		final ClassFile clazzFile = Repository.lookupClassFile(evaluatedClass.getName());
 		System.out.println(clazzFile.getPath());
@@ -127,6 +140,10 @@ public class ClassSpike {
 			System.out.println("\t\t"+field.getType());
 			System.out.println("\t\t"+field.getType().getClass());
 			System.out.println("\t\t"+field.getType().getSignature());
+			if (field.getType() instanceof ArrayType){
+				ArrayType at  = (ArrayType)field.getType();
+				System.out.println("\t\t\t"+at.getElementType());
+			}
 		}
 		System.out.println("methods");
 		for( Method method : clazz.getMethods()){

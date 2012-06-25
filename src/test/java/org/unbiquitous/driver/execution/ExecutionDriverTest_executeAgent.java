@@ -155,14 +155,11 @@ public class ExecutionDriverTest_executeAgent {
 		
 		
 		File path = compileToPath(new String[]{source},new String[]{clazz},tempDir);
-		System.out.println(path);
-//		File jar = folder.newFile("temp.jar");
 		File jar = File.createTempFile("temp", ".jar");
 		JarPackager packager = new JarPackager(new ClassToolbox());
 		final ZipOutputStream zos = new ZipOutputStream( new FileOutputStream( jar ) );
 		packager.zip(path, path, zos);
 		zos.close();
-		System.out.println(jar);
 		Class<?> c= compileToClass(source,clazz);
 		
 		executeFromJar((Serializable) c.newInstance(),new FileInputStream(jar));

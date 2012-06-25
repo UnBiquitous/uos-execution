@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -168,11 +166,7 @@ public class ExecutionDriver implements UosDriver {
 					while (clazz.available() == 0){}
 					loader = toolbox.load(className, clazz);
 				}else if (clazz != null){
-					System.out.println("nois?");
 					loader = toolbox.load(clazz);
-					for(URL u :((URLClassLoader)loader).getURLs()){
-						System.out.println(u);
-					}
 				}else{
 					loader = null;
 				}
@@ -184,7 +178,6 @@ public class ExecutionDriver implements UosDriver {
 						try{
 							return loader.loadClass(desc.getName());
 						}catch(Exception e){
-							System.out.println("pala? "+e);
 							return super.resolveClass(desc);
 						}
 					}
