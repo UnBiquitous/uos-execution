@@ -43,6 +43,8 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
  * The class can be transfered using the channel 1 and informing the class name
  * through the "class" parameter
  * 
+ * OBS: For using ExecutionDriver on Android please see {@link ClassToolbox#platform}
+ * 
  * @author Fabricio Nogueira Buzeto
  *
  */

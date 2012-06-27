@@ -15,7 +15,7 @@ public class AgentUtil {
 
 	private static ClassToolbox toolbox = new ClassToolbox();
 
-	public static void move(MyAgent myAgent, UpDevice target, Gateway gateway) throws Exception {
+	public static void move(Agent agent, UpDevice target, Gateway gateway) throws Exception {
 		ServiceCall execute = new ServiceCall( "uos.ExecutionDriver","executeAgent");
 		execute.setChannels(2);
 		execute.setServiceType(ServiceType.STREAM);
@@ -25,10 +25,10 @@ public class AgentUtil {
 		
 		ObjectOutputStream writer_agent = new ObjectOutputStream(
 								r.getMessageContext().getDataOutputStream(0));
-		writer_agent.writeObject(myAgent);
+		writer_agent.writeObject(agent);
 		writer_agent.close();
 		
-		final File jar = toolbox.packageJarFor(myAgent.getClass());
+		final File jar = toolbox.packageJarFor(agent.getClass());
 		FileInputStream reader = new FileInputStream(jar);
 		byte[] buff = new byte[1024];
 		int read = 0;

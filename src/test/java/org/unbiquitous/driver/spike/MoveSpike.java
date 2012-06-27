@@ -15,8 +15,11 @@ import java.util.ResourceBundle;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.swing.JOptionPane;
+
 import org.apache.log4j.Logger;
 import org.unbiquitous.driver.execution.Agent;
+import org.unbiquitous.driver.execution.AgentUtil;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.context.UOSApplicationContext;
@@ -125,7 +128,8 @@ public class MoveSpike {
 		hello.init(u.getGateway());
 //		hello.moveTo(new UpDevice("MacAgentTarget"));
 		logger.debug("Start Moving.");
-		moveTo(hello,drivers.get(0).getDevice(),g);
+		AgentUtil.move(hello, drivers.get(0).getDevice(), g);
+//		moveTo(hello,drivers.get(0).getDevice(),g);
 	}
 	
 	protected static void moveTo(Agent a, UpDevice to, Gateway g){
@@ -185,6 +189,7 @@ public class MoveSpike {
 class HelloAgent extends Agent implements Serializable{
 	private static final long serialVersionUID = -5711645697892564502L;
 	public void run(Gateway gateway) {
+//		JOptionPane.showConfirmDialog(null , "It's alive !!!");
 		while(true){
 			System.out.println("Eu sou um agente babaca que imprime "+gateway.getCurrentDevice());
 		}

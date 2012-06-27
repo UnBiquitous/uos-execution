@@ -35,23 +35,23 @@ import org.apache.bcel.generic.Type;
  *
  */
 public class ClassToolbox {
-	/*
+	/**
 	 * In the case of Android (Dalvik platform) the platform must be:
 	 * 
 	 * <createClassLoader>
 	 *  File folder = input.getParentFile();
-	 *  return new DexClassLoader(input,folder.getPath(),null, getClassLoader());
+	 *  return new DexClassLoader(input.getPath(),folder.getPath(),null, getClassLoader());
 	 * 
 	 * <createTempDir>
 	 *  File writableDir = getApplicationContext().getDir("temp", Context.MODE_WORLD_WRITEABLE);
-	 *	File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime(),writableDir);
+	 *	return File.createTempFile("uExeTmp", ""+System.nanoTime(),writableDir);
 	 */
 	public static Platform platform = new Platform() {
-		ClassLoader createClassLoader(File input) throws Exception {
+		protected ClassLoader createClassLoader(File input) throws Exception {
 			return new URLClassLoader(new URL[] { input.toURI().toURL() },
 										ClassLoader.getSystemClassLoader());
 		}
-		File createTempDir() throws IOException {
+		protected File createTempDir() throws IOException {
 			File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime());
 			tempDir.delete(); // Delete temp file
 			tempDir.mkdir();  // and transform it to a directory
@@ -60,8 +60,8 @@ public class ClassToolbox {
 	}; 
 	
 	public abstract static class Platform{
-		abstract ClassLoader createClassLoader(File input) throws Exception;
-		abstract File createTempDir() throws Exception;
+		protected abstract ClassLoader createClassLoader(File input) throws Exception;
+		protected abstract File createTempDir() throws Exception;
 	}
 	
 	private ClassFinder finder = new ClassFinder();
