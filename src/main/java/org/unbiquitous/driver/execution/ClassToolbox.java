@@ -147,13 +147,12 @@ public class ClassToolbox {
 class ClassFinder {
 
 	protected Set<String> blacklist = new HashSet<String>();
+	//Caching results seems not to work on a second search, why ?
 //	protected Map<Class<?>, InputStream> cache = new HashMap<Class<?>, InputStream>();
 	protected Set<Class<?>> notFoundCache = new HashSet<Class<?>>();
 
 	protected InputStream findClass(Class<?> clazz) throws IOException {
 
-//		if (cache.containsKey(clazz))
-//			return cache.get(clazz);
 		if (notFoundCache.contains(clazz)) return null;
 
 		String className = clazz.getName().replace('.', File.separatorChar);
@@ -164,19 +163,16 @@ class ClassFinder {
 				File found = findClassFileOnDir(className, entry);
 				if (found != null) {
 					final FileInputStream stream = new FileInputStream(found);
-//					cache.put(clazz, stream);
 					return stream;
 				}
 			} else if (entry.getName().endsWith(".jar")
 					&& !inBlacklist(entry.getName())) {
 				InputStream result = findClassFileOnAJar(className, entry);
 				if (result != null) {
-//					cache.put(clazz, result);
 					return result;
 				}
 			}
 		}
-//		cache.put(clazz, null);
 		notFoundCache.add(clazz);
 		return null;
 	}

@@ -263,10 +263,8 @@ public class ClassToolboxTest {
 		
 		assertEquals(jar1.length(),jar2_1.length());	
 		// They are different bytes, but with the same content
-//		assertStream(new FileInputStream(jar1),new FileInputStream(jar2_1));
 		assertEquals(set1,set2_1);
 		assertEquals(jar2_1.length(),jar2_2.length());	
-//		assertStream(new FileInputStream(jar2_1),new FileInputStream(jar2_2));
 		assertEquals(set2_1,set2_2);	
 	}
 
