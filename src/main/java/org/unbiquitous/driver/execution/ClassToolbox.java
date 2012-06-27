@@ -1,6 +1,7 @@
 package org.unbiquitous.driver.execution;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -141,7 +143,34 @@ public class ClassToolbox {
 	public File packageJarFor(Class<?> clazz) throws Exception {
 		return new JarPackager(this).packageJar(clazz, platform.createTempDir());
 	}
-	
+	// TODO: must validate the environment variable
+	// TODO: must handlçe errors
+	public File packageDalvikFor(Class<?> clazz) throws Exception {
+		File dir = platform.createTempDir();
+		File jar = new JarPackager(this).packageJar(clazz, dir);
+		String ANDROID_HOME = System.getenv("ANDROID_HOME");
+		String DEX_CMD="/platform-tools/dx" +	// Command per se
+				" --dex" +						// To DEX format
+				" --keep-classes" +				// keep original classes
+				" --no-optimize";				// don't mess with it plz
+		String script = ANDROID_HOME+DEX_CMD +				// The command
+				" --output="+					// specify output file
+				dir.getPath()+"/dalvik.jar"+	// our file path
+				" "+jar.getPath();				// the jar to convert
+		System.out.println(script);
+		Process result = Runtime.getRuntime().exec(script);
+		System.out.println("[[Normal]]:");
+		printStream(result.getInputStream());
+		System.out.println("[[Error]]:");
+		printStream(result.getErrorStream());
+		return new File(dir.getPath()+"/dalvik.jar");
+	}
+	private static void printStream(InputStream stream) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+		String line;
+		while ((line = br.readLine()) != null)
+			System.out.println(line);
+	}
 }
 
 class ClassFinder {
@@ -248,7 +277,7 @@ class JarPackager {
 	File packageJar(Class<?> clazz, File path) throws Exception{
 		packageClass(clazz, path);
 		
-		File jar =  File.createTempFile("uExeJar", ""+System.nanoTime());
+		File jar =  File.createTempFile("uExe", System.nanoTime()+".jar");
 		final ZipOutputStream zos = new ZipOutputStream( new FileOutputStream( jar ) );
 		zip(path, path, zos);
 		zos.close();

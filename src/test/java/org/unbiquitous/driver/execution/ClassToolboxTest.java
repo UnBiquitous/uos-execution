@@ -46,7 +46,6 @@ public class ClassToolboxTest {
 		currentDir = System.getProperty("user.dir") ;
 	}
 	
-	// TODO: handle android optimization
 	// TODO: handle resources
 	@Test
 	public void findsAClassInTheSourceFolder() throws Exception {
@@ -245,7 +244,34 @@ public class ClassToolboxTest {
 //		expected.add("org/unbiquitous/driver/execution/JustAGenericReferencedAtributeClass.class");
 		
 		assertEquals(expected,zipEntries(jar));
+	}
+	
+	@Test public void optimizeJarForDalvik() throws Exception{
+		box.add2BlackList("luaj-jse-2.0.2.jar");
+		File dalvik = box.packageDalvikFor(MyJarAgent.class);
 		
+		Set<String> expected = new HashSet<String>();
+		expected.add("org/unbiquitous/driver/execution/MyJarAgent.class");
+		expected.add("org/unbiquitous/driver/execution/JustAnAttributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/AnotherAtributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/JustACoolSuperclass.class");
+		expected.add("org/unbiquitous/driver/execution/JustANiceInterface.class");
+		expected.add("org/unbiquitous/driver/execution/JustAnotherNiceInterface.class");
+		expected.add("org/unbiquitous/driver/execution/AMethodParameter.class");
+		expected.add("org/unbiquitous/driver/execution/AMethodReturnType.class");
+		expected.add("org/unbiquitous/driver/execution/AConstantType.class");
+		expected.add("org/unbiquitous/driver/execution/AStaticReturnType.class");
+		expected.add("org/unbiquitous/driver/execution/MyJarAgent$Inner.class");
+		expected.add("org/unbiquitous/driver/execution/AInnerMethodUsedType.class");
+		expected.add("org/unbiquitous/driver/execution/AnException.class");
+		expected.add("org/unbiquitous/driver/execution/JustAnArrayAtributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/JustAnMultiArrayAtributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/AMethodArrayParameter.class");
+		expected.add("org/unbiquitous/driver/execution/AMethodArrayReturnType.class");
+		expected.add("classes.dex");
+		expected.add("META-INF/MANIFEST.MF");
+		
+		assertEquals(expected,zipEntries(dalvik));
 	}
 	
 	@Test public void packageAlwaysTheSameJar() throws Exception{
