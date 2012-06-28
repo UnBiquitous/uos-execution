@@ -245,6 +245,26 @@ public class ClassToolboxTest {
 		
 		assertEquals(expected,zipEntries(jar));
 	}
+
+	@Test public void packageAlwaysTheSameJar() throws Exception{
+		ClassToolbox box1 = new ClassToolbox();
+		box1.add2BlackList("luaj-jse-2.0.2.jar");
+		File jar1 = box1.packageJarFor(MyJarAgent.class);
+		ClassToolbox box2 = new ClassToolbox();
+		box2.add2BlackList("luaj-jse-2.0.2.jar");
+		File jar2_1 = box2.packageJarFor(MyJarAgent.class);
+		File jar2_2 = box2.packageJarFor(MyJarAgent.class);
+		
+		Set<String> set1 = zipEntries(jar1);
+		Set<String> set2_1 = zipEntries(jar2_1);
+		Set<String> set2_2 = zipEntries(jar2_2);
+		
+		assertEquals(jar1.length(),jar2_1.length());	
+		// They are different bytes, but with the same content
+		assertEquals(set1,set2_1);
+		assertEquals(jar2_1.length(),jar2_2.length());	
+		assertEquals(set2_1,set2_2);	
+	}
 	
 	@Test public void optimizeJarForDalvik() throws Exception{
 		box.add2BlackList("luaj-jse-2.0.2.jar");
@@ -274,26 +294,16 @@ public class ClassToolboxTest {
 		assertEquals(expected,zipEntries(dalvik));
 	}
 	
-	@Test public void packageAlwaysTheSameJar() throws Exception{
-		ClassToolbox box1 = new ClassToolbox();
-		box1.add2BlackList("luaj-jse-2.0.2.jar");
-		File jar1 = box1.packageJarFor(MyJarAgent.class);
-		ClassToolbox box2 = new ClassToolbox();
-		box2.add2BlackList("luaj-jse-2.0.2.jar");
-		File jar2_1 = box2.packageJarFor(MyJarAgent.class);
-		File jar2_2 = box2.packageJarFor(MyJarAgent.class);
-		
-		Set<String> set1 = zipEntries(jar1);
-		Set<String> set2_1 = zipEntries(jar2_1);
-		Set<String> set2_2 = zipEntries(jar2_2);
-		
-		assertEquals(jar1.length(),jar2_1.length());	
-		// They are different bytes, but with the same content
-		assertEquals(set1,set2_1);
-		assertEquals(jar2_1.length(),jar2_2.length());	
-		assertEquals(set2_1,set2_2);	
+	@Test(expected=RuntimeException.class) 
+	public void conversionToDalvikFailsWhenNoAndroidHomeIsDefined() throws Exception{
+		box.convertToDalvik(tempDir, tempDir, null);
 	}
-
+	
+	@Test(expected=RuntimeException.class) 
+	public void conversionToDalvikFailsSoftlyWhenTheConversionDontGoAsExpected() throws Exception{
+		box.convertToDalvik(tempDir, new File("doesnotexsist"), System.getenv("ANDROID_HOME"));
+	}
+	
 	@SuppressWarnings("unchecked")
 	private Set<String> zipEntries(File jar) throws ZipException, IOException {
 		Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) 

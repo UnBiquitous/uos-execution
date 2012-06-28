@@ -27,6 +27,7 @@ import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.Type;
+import org.apache.log4j.Logger;
 
 /**
  * This class is responsible for all logic regarding byte code mumblejumbo.
@@ -37,6 +38,8 @@ import org.apache.bcel.generic.Type;
  *
  */
 public class ClassToolbox {
+	private static Logger logger = Logger.getLogger(ClassToolbox.class);
+	
 	/**
 	 * In the case of Android (Dalvik platform) the platform must be:
 	 * 
@@ -143,12 +146,21 @@ public class ClassToolbox {
 	public File packageJarFor(Class<?> clazz) throws Exception {
 		return new JarPackager(this).packageJar(clazz, platform.createTempDir());
 	}
-	// TODO: must validate the environment variable
-	// TODO: must handlçe errors
+
 	public File packageDalvikFor(Class<?> clazz) throws Exception {
 		File dir = platform.createTempDir();
 		File jar = new JarPackager(this).packageJar(clazz, dir);
 		String ANDROID_HOME = System.getenv("ANDROID_HOME");
+		return convertToDalvik(dir, jar, ANDROID_HOME);
+	}
+	
+	protected File convertToDalvik(File dir, File jar, String ANDROID_HOME)
+			throws IOException {
+		if (ANDROID_HOME == null){
+			String msg = "Not possible to convert file "+jar+
+					" for dalvik since system variable ANDROID_HOME is not defined.";
+			throw new RuntimeException(msg);
+		}
 		String DEX_CMD="/platform-tools/dx" +	// Command per se
 				" --dex" +						// To DEX format
 				" --keep-classes" +				// keep original classes
@@ -157,19 +169,21 @@ public class ClassToolbox {
 				" --output="+					// specify output file
 				dir.getPath()+"/dalvik.jar"+	// our file path
 				" "+jar.getPath();				// the jar to convert
-		System.out.println(script);
 		Process result = Runtime.getRuntime().exec(script);
-		System.out.println("[[Normal]]:");
-		printStream(result.getInputStream());
-		System.out.println("[[Error]]:");
-		printStream(result.getErrorStream());
+		logger.debug(stream2String(result.getInputStream()));
+		final String erroMsg = stream2String(result.getErrorStream());
+		if (erroMsg != null){
+			logger.error(erroMsg);
+			throw new RuntimeException("msg");
+		}
 		return new File(dir.getPath()+"/dalvik.jar");
 	}
-	private static void printStream(InputStream stream) throws IOException {
+	private static String stream2String(InputStream stream) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-		String line;
-		while ((line = br.readLine()) != null)
-			System.out.println(line);
+		StringBuffer msg = new StringBuffer();
+		String line = null;
+		while ((line = br.readLine()) != null)	msg.append(line);
+		return msg.toString().isEmpty() ? null : msg.toString();
 	}
 }
 
