@@ -29,11 +29,6 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class AgentUtilTest {
 
-	//see MoveSpike.moveTo
-	// OK Create a call to 'uos.ExecutionDriver'.'executeAgent'
-	// transport class as jar
-	// send agent serialized
-	
 	@Test public void movingCallsExecuteAgentOnExecutionDriver() throws Exception{
 		Gateway gateway = mockGateway(new ByteArrayOutputStream(), new ByteArrayOutputStream());
 		
@@ -84,7 +79,25 @@ public class AgentUtilTest {
 		//TODO: How to check if close was called?
 	}
 
-	//TODO: Agent class cannot be inner class and must be public
+	@Test(expected=RuntimeException.class) 
+	public void rejectsAgentsAsInnerClasses() throws Exception{
+		Gateway gateway = mockGateway(new ByteArrayOutputStream(), new ByteArrayOutputStream());
+		
+		UpDevice target = new UpDevice("target");
+		AgentUtil.move(new Agent() {
+			private static final long serialVersionUID = 2420826408820982276L;
+			public void run(Gateway gateway) {}
+		},target,gateway);
+	}
+	
+	@Test(expected=RuntimeException.class) 
+	public void rejectsAgentsAsNotPublicClasses() throws Exception{
+		Gateway gateway = mockGateway(new ByteArrayOutputStream(), new ByteArrayOutputStream());
+		
+		UpDevice target = new UpDevice("target");
+		AgentUtil.move(new ShyAgent(),target,gateway);
+	}
+	
 	//TODO: We must assure that the properties are all transient
 	
 	private Gateway mockGateway(final OutputStream spy,
@@ -119,4 +132,10 @@ public class AgentUtilTest {
 		return arraySpy.toByteArray();
 	}
 	
+}
+
+class ShyAgent extends Agent{
+	private static final long serialVersionUID = 1L;
+
+	public void run(Gateway gateway) {}
 }

@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Modifier;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDevice;
@@ -16,6 +17,9 @@ public class AgentUtil {
 	private static ClassToolbox toolbox = new ClassToolbox();
 
 	public static void move(Agent agent, UpDevice target, Gateway gateway) throws Exception {
+		if (agent.getClass().getModifiers() != Modifier.PUBLIC)
+			throw new RuntimeException("Agent class must be public");
+		
 		ServiceCall execute = new ServiceCall( "uos.ExecutionDriver","executeAgent");
 		execute.setChannels(2);
 		execute.setServiceType(ServiceType.STREAM);
