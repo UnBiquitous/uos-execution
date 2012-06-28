@@ -1,6 +1,13 @@
 package org.unbiquitous.driver.execution;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import org.abstractmeta.toolbox.compilation.compiler.JavaSourceCompiler;
 import org.abstractmeta.toolbox.compilation.compiler.impl.JavaSourceCompilerImpl;
@@ -34,5 +41,18 @@ public class CompilationUtil {
 		unit.addJavaSource(clazz, source);
 		ClassLoader loader= compiler.compile(unit);
 		return loader.loadClass(clazz);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static Set<String> zipEntries(File jar) throws ZipException, IOException {
+		Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) 
+													new ZipFile(jar).entries();
+		Set<String> set = new HashSet<String>();
+		
+		while(entries.hasMoreElements()){
+			ZipEntry entry = entries.nextElement();
+			set.add(entry.getName());
+		}
+		return set;
 	}
 }

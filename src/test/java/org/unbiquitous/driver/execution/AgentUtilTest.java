@@ -1,4 +1,4 @@
-package org.unbiquitous.driver.spike;
+package org.unbiquitous.driver.execution;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -6,6 +6,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.unbiquitous.driver.execution.CompilationUtil.zipEntries;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -14,18 +15,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.unbiquitous.driver.execution.AgentUtil;
-import org.unbiquitous.driver.execution.ClassToolbox;
-import org.unbiquitous.driver.execution.MyAgent;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.ServiceCallException;
@@ -92,20 +84,8 @@ public class AgentUtilTest {
 		//TODO: How to check if close was called?
 	}
 
-	//TODO: duplicated
-	@SuppressWarnings("unchecked")
-	private Set<String> zipEntries(File jar) throws ZipException, IOException {
-		Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) 
-													new ZipFile(jar).entries();
-		Set<String> set = new HashSet<String>();
-		
-		while(entries.hasMoreElements()){
-			ZipEntry entry = entries.nextElement();
-			set.add(entry.getName());
-		}
-		return set;
-	}
-	
+	//TODO: Agent class cannot be inner class and must be public
+	//TODO: We must assure that the properties are all transient
 	
 	private Gateway mockGateway(final OutputStream spy,
 								final OutputStream jarSpy)

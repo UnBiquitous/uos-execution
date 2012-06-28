@@ -15,8 +15,6 @@ import java.util.ResourceBundle;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.swing.JOptionPane;
-
 import org.apache.log4j.Logger;
 import org.unbiquitous.driver.execution.Agent;
 import org.unbiquitous.driver.execution.AgentUtil;

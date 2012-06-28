@@ -218,20 +218,6 @@ public class ExecutionDriverTest_executeAgent {
 		assertEquals("SpyCount must be unchanged",(Integer)(before),AgentSpy.count);
 	}
 	
-	//FIXME: How to test this?
-	@Test public void dontAcceptANonAgentAgent() throws Exception{
-		NonAgent a = new NonAgent();
-		final Integer before = AgentSpy.count;
-		execute(a);
-		
-		//assertNotNull("An error is expected.",response.getError());
-		Thread.sleep(2000);
-		assertEquals("Mustn't increment the SpyCount eventually",
-				(Integer)(before),AgentSpy.count);
-		//assertEquals("The informed Agent is not a valid one.",response.getError());
-		
-	}
-	
 	@Test public void dontBreakWithoutAnAgent() throws Exception{
 		driver.executeAgent(null,response,new UOSMessageContext(){
 			public DataInputStream getDataInputStream() {
@@ -273,13 +259,9 @@ public class ExecutionDriverTest_executeAgent {
 	}
 	
 	//TODO: SHouldn't wait 4 ever for a agent to be received
-	//TODO: We must assure that the properties are all transient
 	//TODO: check if there is a way to do it with OSGi
 	//TODO? Must the agent have a lifecycle?
 	//TODO? Do we need to control the execution of the Agent.
-	//TODO: Agent must be able to request to move itself
-	//TODO: must to the move of the agent like at MoveSpike.moveTo
-	//TODO: Agent class cannot be inner class and must be public
 	
 	static interface EventuallyAssert{
 		boolean assertion();

@@ -59,10 +59,7 @@ public class ExecutionDriver implements UosDriver {
 	private ClassToolbox toolbox;
 	
 	public ExecutionDriver(){
-		driver = new UpDriver("uos.ExecutionDriver");
-		driver.addService("remoteExecution").addParameter("code", ParameterType.MANDATORY);
-		driver.addService("executeAgent");
-		toolbox = new ClassToolbox(); //TODO: should be able to inject
+		this(new ClassToolbox());
 		toolbox.add2BlackList("junit-3.8.1.jar");
 		toolbox.add2BlackList("junit-4.9.jar");
 		toolbox.add2BlackList("log4j-1.2.16.jar");
@@ -81,6 +78,13 @@ public class ExecutionDriver implements UosDriver {
 		toolbox.add2BlackList("execution-1.0-SNAPSHOT.jar");
 	}
 	
+	public ExecutionDriver(ClassToolbox myBox) {
+		this.toolbox = myBox;
+		driver = new UpDriver("uos.ExecutionDriver");
+		driver.addService("remoteExecution").addParameter("code", ParameterType.MANDATORY);
+		driver.addService("executeAgent");
+	}
+
 	public ClassToolbox toolbox() {return toolbox;}
 	
 	public UpDriver getDriver() {	return driver;	}
@@ -135,9 +139,11 @@ public class ExecutionDriver implements UosDriver {
 			if (call.getParameter("jar") != null) hasJar = true;
 			else	className = call.getParameter("class");
 			
-			//TODO: should receive the size of these guys so i could avoid ... 
-			//		caching problems. And even could check if the received data
-			//		is in accordance.
+			/*Question: 
+					Should it receive the size of class/jar ? 
+					This could aid avoiding caching problems and even could 
+					help checking if the received data is OK.
+			 */
 			if (hasJar || className != null){
 				clazz = ctx.getDataInputStream(1);
 			}else{

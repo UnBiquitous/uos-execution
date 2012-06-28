@@ -46,4 +46,10 @@ public class ExecutionDriverTest {
 //		assertEquals(executeAgent.) tem que ser stream?
 	}
 	
+	@Test public void shouldUseInformedToolbox(){
+		final ClassToolbox myBox = new ClassToolbox();
+		driver = new ExecutionDriver(myBox);
+		assertSame(myBox, driver.toolbox());
+	}
+	
 }
