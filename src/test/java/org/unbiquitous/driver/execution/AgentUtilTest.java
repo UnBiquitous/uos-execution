@@ -17,7 +17,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
@@ -29,7 +33,15 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall.Servi
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class AgentUtilTest {
-
+	@Rule
+    public TemporaryFolder folder= new TemporaryFolder();
+	
+	private static ClassToolbox box;
+	
+	@BeforeClass public static void init(){
+		box = new ClassToolbox();
+	}
+	
 	@Test public void movingCallsExecuteAgentOnExecutionDriver() throws Exception{
 		Gateway gateway = mockGateway(new ByteArrayOutputStream(), new ByteArrayOutputStream());
 		
@@ -76,9 +88,26 @@ public class AgentUtilTest {
 		UpDevice target = new UpDevice("target");
 		AgentUtil.move(agent,target,gateway);
 		
-		File jar = new ClassToolbox().packageJarFor(agent.getClass());
+		File jar = box.packageJarFor(agent.getClass());
 		
 		assertEquals(zipEntries(jar), zipEntries(jarSpy));
+	}
+	
+	@Test public void movingSendsDalvikJarWhenTargetIsAndroid() throws Exception{
+		MyAgent agent = new MyAgent();
+		File jarSpy = File.createTempFile("uOSAUtilTmpJar", ".jar");
+		//Using buffered i can check if close was properly called
+		Gateway gateway = mockGateway(new ByteArrayOutputStream(),
+						new BufferedOutputStream(new FileOutputStream(jarSpy)));
+		
+		UpDevice target = new UpDevice("target");
+		target.addProperty("platform", "Dalvik");
+		AgentUtil.move(agent,target,gateway);
+		
+		File jar = box.packageJarFor(agent.getClass());
+		File dalvik = box.convertToDalvik(folder.getRoot(), jar, 
+												System.getenv("ANDROID_HOME"));  
+		assertEquals(zipEntries(dalvik), zipEntries(jarSpy));
 	}
 
 	@Test(expected=RuntimeException.class) 
