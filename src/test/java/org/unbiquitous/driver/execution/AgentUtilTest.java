@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.unbiquitous.driver.execution.CompilationUtil.zipEntries;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -55,20 +56,22 @@ public class AgentUtilTest {
 	@Test public void movingSendsAgentSerialized() throws Exception{
 		MyAgent agent = new MyAgent();
 		ByteArrayOutputStream agentSpy = new ByteArrayOutputStream();
-		Gateway gateway = mockGateway(agentSpy,new ByteArrayOutputStream());
+		//Using buffered i can check if close was properly called
+		Gateway gateway = mockGateway(new BufferedOutputStream(agentSpy),
+												new ByteArrayOutputStream());
 		
 		UpDevice target = new UpDevice("target");
 		AgentUtil.move(agent,target,gateway);
 		
 		assertArrayEquals(serialize(agent), agentSpy.toByteArray());
-		//TODO: How to check if close was called?
 	}
 	
 	@Test public void movingSendsAgentJar() throws Exception{
 		MyAgent agent = new MyAgent();
 		File jarSpy = File.createTempFile("uOSAUtilTmpJar", ".jar");
+		//Using buffered i can check if close was properly called
 		Gateway gateway = mockGateway(new ByteArrayOutputStream(),
-										new FileOutputStream(jarSpy));
+						new BufferedOutputStream(new FileOutputStream(jarSpy)));
 		
 		UpDevice target = new UpDevice("target");
 		AgentUtil.move(agent,target,gateway);
@@ -76,7 +79,6 @@ public class AgentUtilTest {
 		File jar = new ClassToolbox().packageJarFor(agent.getClass());
 		
 		assertEquals(zipEntries(jar), zipEntries(jarSpy));
-		//TODO: How to check if close was called?
 	}
 
 	@Test(expected=RuntimeException.class) 
@@ -96,6 +98,15 @@ public class AgentUtilTest {
 		
 		UpDevice target = new UpDevice("target");
 		AgentUtil.move(new ShyAgent(),target,gateway);
+	}
+	
+	@Test public void GatewayMustBeTransient() throws Exception{
+		Gateway gateway = mockGateway(new ByteArrayOutputStream(), new ByteArrayOutputStream());
+		
+		UpDevice target = new UpDevice("target");
+		final MyAgent agent = new MyAgent();
+		agent.init(gateway);
+		AgentUtil.move(agent,target,gateway);
 	}
 	
 	//TODO: We must assure that the properties are all transient
