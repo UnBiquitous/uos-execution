@@ -178,6 +178,26 @@ public class ClassToolboxTest {
 		assertEquals(expected,zipEntries(jar));
 	}
 	
+	@SuppressWarnings("serial")
+	@Test public void returnInformedJar() throws Exception{
+		Agent dummy_inner = new Agent() {
+			public void run(Gateway gateway) {}
+		};
+		File dummy_jar = File.createTempFile("dummy", ".jar");
+		box.setPackageFor(dummy_inner.getClass(), dummy_jar);
+		assertEquals(dummy_jar, box.packageJarFor(dummy_inner.getClass()));
+	}
+	
+	@SuppressWarnings("serial")
+	@Test public void returnInformedApk() throws Exception{
+		Agent dummy_inner = new Agent() {
+			public void run(Gateway gateway) {}
+		};
+		File dummy_jar = File.createTempFile("dummy", ".apk");
+		box.setPackageFor(dummy_inner.getClass(), dummy_jar);
+		assertEquals(dummy_jar, box.packageDalvikFor(dummy_inner.getClass()));
+	}
+	
 	/**
 	 * This is a very complex testCase since we use the {@link MyJarAgent}
 	 * as the tested agent to be compared against the result, such class

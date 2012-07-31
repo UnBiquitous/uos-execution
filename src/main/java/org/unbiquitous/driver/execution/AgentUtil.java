@@ -3,7 +3,6 @@ package org.unbiquitous.driver.execution;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Modifier;
@@ -32,23 +31,16 @@ public class AgentUtil {
 		}
 	}
 
-	private static void sendJar(Agent agent, ServiceResponse r)
-			throws Exception, FileNotFoundException, IOException {
-		final File jar = toolbox.packageJarFor(agent.getClass());
-		FileInputStream reader = new FileInputStream(jar);
-		byte[] buff = new byte[1024];
-		int read = 0;
-		final DataOutputStream jar_writer = r.getMessageContext().getDataOutputStream(1);
-		while ((read = reader.read(buff)) != -1){
-			jar_writer.write(buff, 0, read);
-		}
-		jar_writer.close();
+	private static void sendJar(Agent agent, ServiceResponse r) throws Exception{
+		sendPackage(r, toolbox.packageJarFor(agent.getClass()));
 	}
 
-	private static void sendDalvik(Agent agent, ServiceResponse r)
-			throws Exception, FileNotFoundException, IOException {
-		File jar = toolbox.packageDalvikFor(agent.getClass());
-		FileInputStream reader = new FileInputStream(jar);
+	private static void sendDalvik(Agent agent, ServiceResponse r) throws Exception{
+		sendPackage(r, toolbox.packageDalvikFor(agent.getClass()));
+	}
+
+	private static void sendPackage(ServiceResponse r, File pkg) throws IOException {
+		FileInputStream reader = new FileInputStream(pkg);
 		byte[] buff = new byte[1024];
 		int read = 0;
 		final DataOutputStream jar_writer = r.getMessageContext().getDataOutputStream(1);
@@ -56,10 +48,10 @@ public class AgentUtil {
 			jar_writer.write(buff, 0, read);
 		}
 		jar_writer.close();
+		reader.close();
 	}
 	
-	private static void sendAgent(Agent agent, ServiceResponse r)
-			throws IOException {
+	private static void sendAgent(Agent agent, ServiceResponse r) throws IOException {
 		ObjectOutputStream writer_agent = new ObjectOutputStream(
 								r.getMessageContext().getDataOutputStream(0));
 		writer_agent.writeObject(agent);

@@ -13,8 +13,10 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -70,15 +72,31 @@ public class ClassToolbox {
 	}
 	
 	private ClassFinder finder = new ClassFinder();
+	private Map<Class<?>,File> package_cache = new HashMap<Class<?>, File>();  
 	
 	public void add2BlackList(String jarName) {	finder.blacklist.add(jarName);}
 	public Set<String> blacklist(){ return finder.blacklist;};
 
+	public void setPackageFor(Class<?> clazz, File jar) {
+		package_cache.put(clazz, jar);
+	}
 	
 	protected InputStream findClass(Class<?> clazz) throws IOException {
 		return finder.findClass(clazz);
 	}
-	
+
+	public File packageJarFor(Class<?> clazz) throws Exception {
+		if (package_cache.containsKey(clazz)) return package_cache.get(clazz);
+		return new JarPackager(this).packageJar(clazz, platform.createTempDir());
+	}
+
+	public File packageDalvikFor(Class<?> clazz) throws Exception {
+		if (package_cache.containsKey(clazz)) return package_cache.get(clazz);
+		File dir = platform.createTempDir();
+		File jar = new JarPackager(this).packageJar(clazz, dir);
+		String ANDROID_HOME = System.getenv("ANDROID_HOME");
+		return convertToDalvik(dir, jar, ANDROID_HOME);
+	}
 	
 	//TODO: Check how to work this out when at android.
 	/*
@@ -143,17 +161,6 @@ public class ClassToolbox {
 		writer.close();
 	}
 	
-	public File packageJarFor(Class<?> clazz) throws Exception {
-		return new JarPackager(this).packageJar(clazz, platform.createTempDir());
-	}
-
-	public File packageDalvikFor(Class<?> clazz) throws Exception {
-		File dir = platform.createTempDir();
-		File jar = new JarPackager(this).packageJar(clazz, dir);
-		String ANDROID_HOME = System.getenv("ANDROID_HOME");
-		return convertToDalvik(dir, jar, ANDROID_HOME);
-	}
-	
 	protected File convertToDalvik(File dir, File jar, String ANDROID_HOME)
 			throws IOException {
 		if (ANDROID_HOME == null){
@@ -185,17 +192,29 @@ public class ClassToolbox {
 		while ((line = br.readLine()) != null)	msg.append(line);
 		return msg.toString().isEmpty() ? null : msg.toString();
 	}
+	
 }
 
 class ClassFinder {
 
 	protected Set<String> blacklist = new HashSet<String>();
 	//Caching results seems not to work on a second search, why ?
-//	protected Map<Class<?>, InputStream> cache = new HashMap<Class<?>, InputStream>();
+//	protected Map<Class<?>, InputStream> 
+//								cache = new HashMap<Class<?>, InputStream>();
 	protected Set<Class<?>> notFoundCache = new HashSet<Class<?>>();
 
 	protected InputStream findClass(Class<?> clazz) throws IOException {
 
+//		if (cache.containsKey(clazz)){
+//			InputStream cached = cache.get(clazz);
+//			try {
+//				if (cached != null)		cached.reset();
+//			} catch (Exception e) {
+//				System.out.println(clazz);
+//				e.printStackTrace();
+//			}
+//			return cached;
+//		}
 		if (notFoundCache.contains(clazz)) return null;
 
 		String className = clazz.getName().replace('.', File.separatorChar);
@@ -206,17 +225,21 @@ class ClassFinder {
 				File found = findClassFileOnDir(className, entry);
 				if (found != null) {
 					final FileInputStream stream = new FileInputStream(found);
+//					stream.mark((int)found.length());
+//					cache.put(clazz, stream);
 					return stream;
 				}
 			} else if (entry.getName().endsWith(".jar")
 					&& !inBlacklist(entry.getName())) {
 				InputStream result = findClassFileOnAJar(className, entry);
 				if (result != null) {
+//					cache.put(clazz, result);
 					return result;
 				}
 			}
 		}
 		notFoundCache.add(clazz);
+//		cache.put(clazz, null);
 		return null;
 	}
 
