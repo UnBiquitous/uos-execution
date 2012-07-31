@@ -1,7 +1,11 @@
 package org.unbiquitous.driver.execution;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -54,5 +58,21 @@ public class CompilationUtil {
 			set.add(entry.getName());
 		}
 		return set;
+	}
+	
+	public static void assertStream(InputStream expected, InputStream dummyClass)
+			throws IOException {
+		if (expected == dummyClass)
+			return;
+		if (expected == null)
+			fail("Returned stream was not null.");
+		if (dummyClass == null)
+			fail("Returned stream was null.");
+		byte b;
+		long count = 0;
+		while ((b = (byte) expected.read()) != -1) {
+			assertEquals("Failed on byte " + count, b, (byte) dummyClass.read());
+			count++;
+		}
 	}
 }

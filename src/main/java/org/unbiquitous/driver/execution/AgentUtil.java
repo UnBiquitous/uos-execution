@@ -14,10 +14,16 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall.ServiceType;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
+//TODO: Doc
 public class AgentUtil {
 
 	private static ClassToolbox toolbox = new ClassToolbox();
 
+	public static void move(Agent agent, File pkg, UpDevice target, Gateway gateway) throws Exception {
+		toolbox.setPackageFor(agent.getClass(), pkg);
+		move(agent, target, gateway);
+	}
+	
 	public static void move(Agent agent, UpDevice target, Gateway gateway) throws Exception {
 		if (agent.getClass().getModifiers() != Modifier.PUBLIC)
 			throw new RuntimeException("Agent class must be public");

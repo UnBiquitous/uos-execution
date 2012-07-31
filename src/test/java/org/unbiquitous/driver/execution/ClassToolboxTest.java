@@ -2,15 +2,14 @@ package org.unbiquitous.driver.execution;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToPath;
 import static org.unbiquitous.driver.execution.CompilationUtil.zipEntries;
+import static org.unbiquitous.driver.execution.CompilationUtil.assertStream;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
@@ -309,21 +308,5 @@ public class ClassToolboxTest {
 	@Test(expected=RuntimeException.class) 
 	public void conversionToDalvikFailsSoftlyWhenTheConversionDontGoAsExpected() throws Exception{
 		box.convertToDalvik(tempDir, new File("doesnotexsist"), System.getenv("ANDROID_HOME"));
-	}
-	
-	private void assertStream(InputStream expected, InputStream dummyClass)
-			throws IOException {
-		if (expected == dummyClass)
-			return;
-		if (expected == null)
-			fail("Returned stream was not null.");
-		if (dummyClass == null)
-			fail("Returned stream was null.");
-		byte b;
-		long count = 0;
-		while ((b = (byte) expected.read()) != -1) {
-			assertEquals("Failed on byte " + count, b, (byte) dummyClass.read());
-			count++;
-		}
 	}
 }

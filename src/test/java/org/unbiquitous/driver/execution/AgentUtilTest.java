@@ -7,11 +7,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.unbiquitous.driver.execution.CompilationUtil.zipEntries;
+import static org.unbiquitous.driver.execution.CompilationUtil.assertStream;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -22,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
+import org.unbiquitous.driver.execution.dummy.DummyAgent;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.ServiceCallException;
@@ -90,6 +93,25 @@ public class AgentUtilTest {
 		File jar = box.packageJarFor(agent.getClass());
 		
 		assertEquals(zipEntries(jar), zipEntries(jarSpy));
+	}
+	
+	@Test public void movingSendsSpecificPackage() throws Exception{
+		Agent agent = new DummyAgent();
+		File jarSpy = File.createTempFile("uOSAUtilTmpJar", ".jar");
+		//Using buffered i can check if close was properly called
+		Gateway gateway = mockGateway(new ByteArrayOutputStream(),
+				new BufferedOutputStream(new FileOutputStream(jarSpy)));
+		
+		File dummyPkg = File.createTempFile("dummy", ".jar");
+		FileOutputStream writer = new FileOutputStream(dummyPkg);
+		writer.write("Hello Package".getBytes());
+		writer.close();
+		
+		UpDevice target = new UpDevice("target");
+		AgentUtil.move(agent,dummyPkg, target,gateway);
+		
+		assertStream(new FileInputStream(dummyPkg), 
+												new FileInputStream(jarSpy));
 	}
 	
 	@Test public void movingSendsDalvikJarWhenTargetIsAndroid() throws Exception{
