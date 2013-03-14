@@ -6,8 +6,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.luaj.vm2.LoadState;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
@@ -50,7 +51,7 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
  */
 public class ExecutionDriver implements UosDriver {
 
-	private static final Logger logger = Logger.getLogger(ExecutionDriver.class);
+	private static final Logger logger = Logger.getLogger(ExecutionDriver.class.getName());
 	
 	private long script_id = 0;
 
@@ -119,7 +120,7 @@ public class ExecutionDriver implements UosDriver {
 			
 			response.addParameter("value", UosLuaCall.values().getValue(script_id, "value"));
 		} catch (IOException e) {
-			logger.error("Error handling Execution call. Cause:",e);
+			logger.log(Level.SEVERE,"Error handling Execution call. Cause:",e);
 			response.setError("Error handling Execution call. Cause:"+e.getMessage());
 		}
 	}
@@ -152,7 +153,7 @@ public class ExecutionDriver implements UosDriver {
 			new Thread(new AgentHandler(className, clazz, agent)).start();
 		} catch (Throwable e) {
 			response.setError("Something unexpected happened.");
-			logger.error(e);
+			logger.log(Level.SEVERE,"Problems executing agent.",e);
 		}
 	}
 
@@ -197,7 +198,7 @@ public class ExecutionDriver implements UosDriver {
 					//response.setError("The informed Agent is not a valid one.");
 				}
 			} catch (Exception e) {
-				logger.error(e);
+				logger.log(Level.SEVERE,"Problems on running agent",e);
 			}
 		};
 	}

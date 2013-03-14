@@ -12,10 +12,10 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.ListResourceBundle;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.log4j.Logger;
 import org.unbiquitous.driver.execution.Agent;
 import org.unbiquitous.driver.execution.AgentUtil;
 
@@ -29,7 +29,7 @@ import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class MoveSpike {
 
-	private static final Logger logger = Logger.getLogger(MoveSpike.class);;
+	private static final Logger logger = Logger.getLogger(MoveSpike.class.getName());;
 
 	public static void main(String[] args) throws Exception{
 		
@@ -119,13 +119,13 @@ public class MoveSpike {
 		HelloAgent hello = new HelloAgent();
 		Gateway g = u.getGateway();
 		List<DriverData> drivers = null;
-		logger.debug("Searching Drivers.");
+		logger.fine("Searching Drivers.");
 		do{
 			drivers = g.listDrivers("uos.ExecutionDriver");
 		}while(drivers == null || drivers.isEmpty());
 		hello.init(u.getGateway());
 //		hello.moveTo(new UpDevice("MacAgentTarget"));
-		logger.debug("Start Moving.");
+		logger.fine("Start Moving.");
 		AgentUtil.move(hello, drivers.get(0).getDevice(), g);
 //		moveTo(hello,drivers.get(0).getDevice(),g);
 	}
@@ -139,22 +139,22 @@ public class MoveSpike {
 		
 		try {
 			ServiceResponse r = g.callService(to, move);
-			logger.debug("Opening agent stream.");
+			logger.fine("Opening agent stream.");
 			ObjectOutputStream writer_agent = new ObjectOutputStream(r.getMessageContext().getDataOutputStream(0));
-			logger.debug("Sending agent.");
+			logger.fine("Sending agent.");
 			writer_agent.writeObject(a);
 			writer_agent.close();
-			logger.debug("Opening class stream.");
+			logger.fine("Opening class stream.");
 			OutputStream writer_class = r.getMessageContext().getDataOutputStream(1);
 			final String classFile = findClass(a);
-			logger.debug("Sending class "+classFile);
+			logger.fine("Sending class "+classFile);
 			InputStream clazz= new FileInputStream(classFile);
-			logger.debug("Uffa.");
+			logger.fine("Uffa.");
 			int b;
 			while((b = clazz.read())!= -1)
 				writer_class.write(b);
 			writer_class.close();
-//			logger.debug("Waiting to finish.");
+//			logger.fine("Waiting to finish.");
 //			while (writer_agent.)
 		} catch (Exception e) {
 			e.printStackTrace();

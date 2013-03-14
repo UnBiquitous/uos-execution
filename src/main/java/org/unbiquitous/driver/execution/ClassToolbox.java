@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -29,7 +30,6 @@ import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.Type;
-import org.apache.log4j.Logger;
 
 /**
  * This class is responsible for all logic regarding byte code mumblejumbo.
@@ -40,7 +40,7 @@ import org.apache.log4j.Logger;
  *
  */
 public class ClassToolbox {
-	private static Logger logger = Logger.getLogger(ClassToolbox.class);
+	private static Logger logger = Logger.getLogger(ClassToolbox.class.getName());
 	
 	/**
 	 * In the case of Android (Dalvik platform) the platform must be:
@@ -177,10 +177,10 @@ public class ClassToolbox {
 				dir.getPath()+"/dalvik.jar"+	// our file path
 				" "+jar.getPath();				// the jar to convert
 		Process result = Runtime.getRuntime().exec(script);
-		logger.debug(stream2String(result.getInputStream()));
+		logger.fine(stream2String(result.getInputStream()));
 		final String erroMsg = stream2String(result.getErrorStream());
 		if (erroMsg != null){
-			logger.error(erroMsg);
+			logger.severe(erroMsg);
 			throw new RuntimeException("msg");
 		}
 		return new File(dir.getPath()+"/dalvik.jar");

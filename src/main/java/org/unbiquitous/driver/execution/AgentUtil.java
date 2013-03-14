@@ -30,7 +30,7 @@ public class AgentUtil {
 		
 		ServiceResponse r = callExecute(target, gateway);
 		sendAgent(agent, r);
-		if ("Dalvik".equalsIgnoreCase(target.getProperty("platform"))){
+		if ("Dalvik".equalsIgnoreCase((String)target.getProperty("platform"))){
 			sendDalvik(agent, r);
 		}else{
 			sendJar(agent, r);

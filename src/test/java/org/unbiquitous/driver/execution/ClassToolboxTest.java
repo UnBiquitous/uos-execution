@@ -6,6 +6,7 @@ import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToPath;
 import static org.unbiquitous.driver.execution.CompilationUtil.zipEntries;
 import static org.unbiquitous.driver.execution.CompilationUtil.assertStream;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,7 +60,7 @@ public class ClassToolboxTest {
 	}
 
 	@Test
-	public void MustNotConfuseHomonymsClases() throws Exception {
+	public void mustNotConfuseHomonymsClasses() throws Exception {
 		String pkgRoot = "org/unbiquitous/driver/execution/";
 		String rootPath = currentDir + "/target/test-classes/" + pkgRoot;
 
@@ -229,27 +230,26 @@ public class ClassToolboxTest {
 		box.add2BlackList("luaj-jse-2.0.2.jar");
 		File jar = box.packageJarFor(MyJarAgent.class);
 		
-		Set<String> expected = new HashSet<String>();
-		expected.add("org/unbiquitous/driver/execution/MyJarAgent.class");
-		expected.add("org/unbiquitous/driver/execution/JustAnAttributeClass.class");
-		expected.add("org/unbiquitous/driver/execution/AnotherAtributeClass.class");
-		expected.add("org/unbiquitous/driver/execution/JustACoolSuperclass.class");
-		expected.add("org/unbiquitous/driver/execution/JustANiceInterface.class");
-		expected.add("org/unbiquitous/driver/execution/JustAnotherNiceInterface.class");
-		expected.add("org/unbiquitous/driver/execution/AMethodParameter.class");
-		expected.add("org/unbiquitous/driver/execution/AMethodReturnType.class");
-		expected.add("org/unbiquitous/driver/execution/AConstantType.class");
-		expected.add("org/unbiquitous/driver/execution/AStaticReturnType.class");
-		expected.add("org/unbiquitous/driver/execution/MyJarAgent$Inner.class");
-		expected.add("org/unbiquitous/driver/execution/AInnerMethodUsedType.class");
-		expected.add("org/unbiquitous/driver/execution/AnException.class");
-		expected.add("org/unbiquitous/driver/execution/JustAnArrayAtributeClass.class");
-		expected.add("org/unbiquitous/driver/execution/JustAnMultiArrayAtributeClass.class");
-		expected.add("org/unbiquitous/driver/execution/AMethodArrayParameter.class");
-		expected.add("org/unbiquitous/driver/execution/AMethodArrayReturnType.class");
-//		expected.add("org/unbiquitous/driver/execution/JustAGenericReferencedAtributeClass.class");
-		
-		assertEquals(expected,zipEntries(jar));
+		assertThat(zipEntries(jar)).contains(
+			"org/unbiquitous/driver/execution/MyJarAgent.class",
+			"org/unbiquitous/driver/execution/JustAnAttributeClass.class",
+			"org/unbiquitous/driver/execution/AnotherAtributeClass.class",
+			"org/unbiquitous/driver/execution/JustACoolSuperclass.class",
+			"org/unbiquitous/driver/execution/JustANiceInterface.class",
+			"org/unbiquitous/driver/execution/JustAnotherNiceInterface.class",
+			"org/unbiquitous/driver/execution/AMethodParameter.class",
+			"org/unbiquitous/driver/execution/AMethodReturnType.class",
+			"org/unbiquitous/driver/execution/AConstantType.class",
+			"org/unbiquitous/driver/execution/AStaticReturnType.class",
+			"org/unbiquitous/driver/execution/MyJarAgent$Inner.class",
+			"org/unbiquitous/driver/execution/AInnerMethodUsedType.class",
+			"org/unbiquitous/driver/execution/AnException.class",
+			"org/unbiquitous/driver/execution/JustAnArrayAtributeClass.class",
+			"org/unbiquitous/driver/execution/JustAnMultiArrayAtributeClass.class",
+			"org/unbiquitous/driver/execution/AMethodArrayParameter.class",
+			"org/unbiquitous/driver/execution/AMethodArrayReturnType.class"
+	//		"org/unbiquitous/driver/execution/JustAGenericReferencedAtributeClass.class"
+		);
 	}
 
 	@Test public void packageAlwaysTheSameJar() throws Exception{
