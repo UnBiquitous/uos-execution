@@ -30,8 +30,9 @@
 		<dependency>
 			<groupId>ubiquitos</groupId>
 			<artifactId>uos.core</artifactId>
-			<version>2.2.0</version>
+			<version>2.2.1_DEV</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>luaj</groupId>
 			<artifactId>luaj-jse</artifactId>
@@ -39,6 +40,7 @@
 			<scope>system</scope>
 			<systemPath>${basedir}/lib/luaj-jse-2.0.2.jar</systemPath>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.apache.bcel</groupId>
 			<artifactId>bcel</artifactId>
@@ -75,5 +77,13 @@
 			<version>0.3.0</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+			<groupId>ubiquitos</groupId>
+			<artifactId>uos.tcp_udp.plugin</artifactId>
+			<version>2.2.1_DEV</version>
+			<scope>test</scope>
+		</dependency>
+		
 	</dependencies>
 </project>

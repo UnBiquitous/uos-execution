@@ -190,6 +190,7 @@ class HelloAgent extends Agent implements Serializable{
 //		JOptionPane.showConfirmDialog(null , "It's alive !!!");
 		while(true){
 			System.out.println("Eu sou um agente babaca que imprime "+gateway.getCurrentDevice());
+			Logger.getLogger(HelloAgent.class.getName()).info("Eu sou um agente babaca que imprime "+gateway.getCurrentDevice());
 		}
 	}
 }
