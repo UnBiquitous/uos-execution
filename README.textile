@@ -1,3 +1,8 @@
 h1. Execution Driver
 
-This is part of the uOS:http://ubiquitos.googlecode.com project. 
+	This Project is part of the uOS:http://ubiquitos.googlecode.com middleware project.
+	It provides ways to explore the CPU of a device as a open resource.
+	For such any application on the Smart Space can send pieces of code that
+	wants to be executed remotely.
+	
+	 
