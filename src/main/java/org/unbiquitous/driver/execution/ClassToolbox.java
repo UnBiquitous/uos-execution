@@ -74,7 +74,9 @@ public class ClassToolbox {
 	private ClassFinder finder = new ClassFinder();
 	private Map<Class<?>,File> package_cache = new HashMap<Class<?>, File>();  
 	
-	public void add2BlackList(String jarName) {	finder.blacklist.add(jarName);}
+	public void add2BlackList(String jarName) {	
+		finder.blacklist.add(jarName);
+	}
 	public Set<String> blacklist(){ return finder.blacklist;};
 
 	public void setPackageFor(Class<?> clazz, File jar) {
@@ -107,13 +109,13 @@ public class ClassToolbox {
 	 * 3 : The Loader must be a DexClassLoader
 	 * 		ex: new DexClassLoader(jarPath,parentFile.getPath(),null, getClassLoader());
 	 */
-	protected ClassLoader load(String className, InputStream clazz) throws Exception {
+	public ClassLoader load(String className, InputStream clazz) throws Exception {
 		File classDir = createClassFileDir(className, clazz);
 		return platform.createClassLoader(classDir);
 //		addPathToClassLoader(classDir);
 	}
 
-	protected ClassLoader load(InputStream jar) throws Exception{
+	public ClassLoader load(InputStream jar) throws Exception{
 		File tempJar = File.createTempFile("uExeTmp.jar", ""+System.nanoTime());
 		writeOnFile(jar, tempJar);
 		return platform.createClassLoader(tempJar);
@@ -157,7 +159,9 @@ public class ClassToolbox {
 			throws FileNotFoundException, IOException {
 		FileOutputStream writer = new FileOutputStream(classFile);
 		int b = 0;
-		while((b = clazzByteCode.read()) != -1) writer.write(b);
+		while((b = clazzByteCode.read()) != -1) {
+			writer.write(b);
+		}
 		writer.close();
 	}
 	
@@ -230,7 +234,7 @@ class ClassFinder {
 					return stream;
 				}
 			} else if (entry.getName().endsWith(".jar")
-					&& !inBlacklist(entry.getName())) {
+					&& !inBlackList(entry.getName())) {
 				InputStream result = findClassFileOnAJar(className, entry);
 				if (result != null) {
 //					cache.put(clazz, result);
@@ -244,16 +248,17 @@ class ClassFinder {
 	}
 
 	private boolean inBlackList(String path) {
-		for (String black : blacklist)
+		for (String black : blacklist){
 			if (path.contains(black)) {
 				return true;
 			}
+		}
 		return false;
 	}
 
-	private boolean inBlacklist(String jarName) {
-		return blacklist.contains(jarName);
-	}
+//	private boolean inBlacklist(String jarName) {
+//		return blacklist.contains(jarName);
+//	}
 
 	private InputStream findClassFileOnAJar(String className, File jar)
 			throws FileNotFoundException, IOException {
@@ -326,7 +331,6 @@ class JarPackager {
 		if (!processedClasses.contains(clazz)) {
 			final InputStream bytecode = toolbox.findClass(clazz);
 			if (bytecode == null) return; //cut not found classes
-			
 			processedClasses.add(clazz);
 			toolbox.writeClassFileOnPath(clazz.getName(), bytecode, path);
 

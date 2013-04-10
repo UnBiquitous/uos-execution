@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,22 +62,20 @@ public class ExecutionDriver implements UosDriver {
 	
 	public ExecutionDriver(){
 		this(new ClassToolbox());
-		toolbox.add2BlackList("junit-3.8.1.jar");
-		toolbox.add2BlackList("junit-4.9.jar");
-		toolbox.add2BlackList("log4j-1.2.16.jar");
-		toolbox.add2BlackList("log4j-1.2.14.jar");
-		toolbox.add2BlackList("hsqldb-1.8.0.10.jar");
-		toolbox.add2BlackList("hsqldb-1.8.0.7.jar");
-		toolbox.add2BlackList("owlapi-3.2.4.jar");
-		toolbox.add2BlackList("jcl-core-2.2.2.jar");
-		toolbox.add2BlackList("objenesis-1.1.jar");
-		toolbox.add2BlackList("cglib-nodep-2.2.jar");
-		toolbox.add2BlackList("HermiT-1.0.jar");
-		toolbox.add2BlackList("hamcrest-core-1.1.jar");
-		toolbox.add2BlackList("mockito-all-1.8.5.jar");
-		toolbox.add2BlackList("uos-core-2.2.0_DEV.jar");
+		toolbox.add2BlackList("junit");
+		toolbox.add2BlackList("log4j");
+		toolbox.add2BlackList("hsqldb");
+		toolbox.add2BlackList("owlapi");
+		toolbox.add2BlackList("jcl-core");
+		toolbox.add2BlackList("objenesis");
+		toolbox.add2BlackList("cglib-nodep");
+		toolbox.add2BlackList("HermiT");
+		toolbox.add2BlackList("hamcrest-core");
+		toolbox.add2BlackList("mockito-all");
+		toolbox.add2BlackList("uos-core");
+		toolbox.add2BlackList("uos.tcp_udp.plugin");
 		toolbox.add2BlackList("/uos_core/target/classes");
-		toolbox.add2BlackList("execution-1.0-SNAPSHOT.jar");
+		toolbox.add2BlackList("uos-execution");
 	}
 	
 	public ExecutionDriver(ClassToolbox myBox) {
@@ -195,7 +194,8 @@ public class ExecutionDriver implements UosDriver {
 				if (o instanceof Agent){
 					((Agent)o).run(gateway);
 				}else{
-					//response.setError("The informed Agent is not a valid one.");
+					Method run = o.getClass().getMethod("run", Gateway.class);
+					run.invoke(o, gateway);
 				}
 			} catch (Exception e) {
 				logger.log(Level.SEVERE,"Problems on running agent",e);

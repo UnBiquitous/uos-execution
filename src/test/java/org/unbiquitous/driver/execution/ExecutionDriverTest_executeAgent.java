@@ -1,5 +1,6 @@
 package org.unbiquitous.driver.execution;
 
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -22,15 +23,12 @@ import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.zip.ZipOutputStream;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.unbiquitous.driver.execution.MyAgent.AgentSpy;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;
@@ -54,50 +52,63 @@ public class ExecutionDriverTest_executeAgent {
 	}
 	
 	@Test public void toolboxMustBeInitializedWithDependencies(){
-		Set<String> dependencies = new HashSet<String>(); 
-		//TODO: fix these duplicates
-		dependencies.add("junit-3.8.1.jar");
-		dependencies.add("junit-4.9.jar");
-		dependencies.add("log4j-1.2.16.jar");
-		dependencies.add("log4j-1.2.14.jar");
-		dependencies.add("hsqldb-1.8.0.10.jar");
-		dependencies.add("hsqldb-1.8.0.7.jar");
-		dependencies.add("owlapi-3.2.4.jar");
-		dependencies.add("jcl-core-2.2.2.jar");
-		dependencies.add("objenesis-1.1.jar");
-		dependencies.add("cglib-nodep-2.2.jar");
-		dependencies.add("HermiT-1.0.jar");
-		dependencies.add("hamcrest-core-1.1.jar");
-		dependencies.add("mockito-all-1.8.5.jar");
-		//TODO: how to handle if the versions changes or something is added
-		dependencies.add("uos-core-2.2.0_DEV.jar");
-		//TODO: must add myself dynamically
-		dependencies.add("/uos_core/target/classes");
-		dependencies.add("execution-1.0-SNAPSHOT.jar");
-		assertEquals(dependencies,driver.toolbox().blacklist());
+		String[] dependencies = new String[]{ 
+		"junit",
+		"log4j",
+		"hsqldb",
+		"owlapi",
+		"jcl-core",
+		"objenesis",
+		"cglib-nodep",
+		"HermiT",
+		"hamcrest-core",
+		"mockito-all",
+		"uos-core",
+		"uos.tcp_udp.plugin",
+		"/uos_core/target/classes",
+		"uos-execution"}; // TODO: must be uos-execution
+		assertThat(driver.toolbox().blacklist()).containsOnly(dependencies);
 	}
 	
 	@Test public void runTheCalledAgentOnAThread() throws Exception{
 		MyAgent a = new MyAgent();
 		a.sleepTime = 1000;
 		
-		final Integer before = AgentSpy.count;
+		final Integer before = MyAgent.AgentSpy.count;
 		
 		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
-		assertEquals((Integer)(before),AgentSpy.count);
+		assertEquals((Integer)(before),MyAgent.AgentSpy.count);
 		assertEventuallyTrue("Must increment the SpyCount eventually", 
 				a.sleepTime + 1000, new EventuallyAssert(){
 				public boolean assertion(){
-					return (Integer)(before+1) == AgentSpy.count;
+					return (Integer)(before+1) == MyAgent.AgentSpy.count;
+				}
+			});
+	}
+	
+	@Test public void runTheCalledAnonymousAgentOnAThread() throws Exception{
+		MyAnonymousAgent a = new MyAnonymousAgent();
+		a.sleepTime = 1000;
+		
+		final Integer before = MyAnonymousAgent.AgentSpy.count;
+		
+		execute(a);
+		
+		assertNull("No error should be found.",response.getError());
+		assertEquals((Integer)(before),MyAnonymousAgent.AgentSpy.count);
+		assertEventuallyTrue("Must increment the SpyCount eventually", 
+				a.sleepTime + 1000, new EventuallyAssert(){
+				public boolean assertion(){
+					return (Integer)(before+1) == MyAnonymousAgent.AgentSpy.count;
 				}
 			});
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test public void runTheCalledAgentFromNewJavaCodeOnAThread() throws Exception{
-		final Integer before = AgentSpy.count;
+		final Integer before = MyAgent.AgentSpy.count;
 		
 		String source = 
 				"package org.unbiquitous.driver.execution;"
@@ -133,13 +144,13 @@ public class ExecutionDriverTest_executeAgent {
 		assertEventuallyTrue("Must increment the SpyCount eventually",1000, 
 				new EventuallyAssert(){
 					public boolean assertion(){
-						return (Integer)(before+17) == AgentSpy.count;
+						return (Integer)(before+17) == MyAgent.AgentSpy.count;
 					}
 				});
 	}
 	
 	@Test public void runTheCalledAgentFromAjarFile() throws Exception{
-		final Integer before = AgentSpy.count;
+		final Integer before = MyAgent.AgentSpy.count;
 		
 		String source = 
 				"package org.unbiquitous.driver.execution;"
@@ -169,23 +180,23 @@ public class ExecutionDriverTest_executeAgent {
 		assertEventuallyTrue("Must increment the SpyCount eventually",1000, 
 				new EventuallyAssert(){
 					public boolean assertion(){
-						return (Integer)(before+21) == AgentSpy.count;
+						return (Integer)(before+21) == MyAgent.AgentSpy.count;
 					}
 				});
 	}
 	
 	@Test public void rejectsACorruptedAgentObject() throws Exception{
-		final Integer before = AgentSpy.count;
+		final Integer before = MyAgent.AgentSpy.count;
 		MyAgent a = new MyAgent();
 		
 		dontexecute(a);
 		
 		Thread.sleep(1000);
-		assertEquals("SpyCount must be unchanged",(Integer)(before),AgentSpy.count);
+		assertEquals("SpyCount must be unchanged",(Integer)(before),MyAgent.AgentSpy.count);
 	}
 	
 	@Test public void rejectsACorruptedClassStream() throws Exception{
-		final Integer before = AgentSpy.count;
+		final Integer before = MyAgent.AgentSpy.count;
 		
 		String source = 
 				"package org.unbiquitous.driver.execution;"
@@ -215,7 +226,7 @@ public class ExecutionDriverTest_executeAgent {
 		
 		Thread.sleep(1000);
 		
-		assertEquals("SpyCount must be unchanged",(Integer)(before),AgentSpy.count);
+		assertEquals("SpyCount must be unchanged",(Integer)(before),MyAgent.AgentSpy.count);
 	}
 	
 	@Test public void dontBreakWithoutAnAgent() throws Exception{
@@ -252,10 +263,10 @@ public class ExecutionDriverTest_executeAgent {
 		assertEventuallyTrue("The gateway mus be the same as the one informed", 
 				1000, new EventuallyAssert(){
 				public boolean assertion(){
-					return AgentSpy.lastAgent != null && g == AgentSpy.lastAgent.gateway;
+					return MyAgent.AgentSpy.lastAgent != null && g == MyAgent.AgentSpy.lastAgent.gateway;
 				}
 			});
-		assertEquals(g, AgentSpy.lastAgent.gateway);
+		assertEquals(g, MyAgent.AgentSpy.lastAgent.gateway);
 	}
 	
 	//TODO: SHouldn't wait 4 ever for a agent to be received
@@ -368,7 +379,7 @@ public class ExecutionDriverTest_executeAgent {
 class NonAgent implements Serializable{
 	private static final long serialVersionUID = -6537712082673542107L;
 	public void run(Gateway gateway){
-		AgentSpy.count++;
+		MyAgent.AgentSpy.count++;
 	}
 }
 

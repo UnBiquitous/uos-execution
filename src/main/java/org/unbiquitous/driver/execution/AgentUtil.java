@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Modifier;
 
+import br.unb.unbiquitous.ubiquitos.Logger;
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.ServiceCallException;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDevice;
@@ -30,6 +31,7 @@ public class AgentUtil {
 		
 		ServiceResponse r = callExecute(target, gateway);
 		sendAgent(agent, r);
+		Logger.getLogger(AgentUtil.class).debug("Target platform is: "+target.getProperty("platform"));
 		if ("Dalvik".equalsIgnoreCase((String)target.getProperty("platform"))){
 			sendDalvik(agent, r);
 		}else{

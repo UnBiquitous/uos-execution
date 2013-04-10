@@ -1,12 +1,11 @@
 package org.unbiquitous.driver.execution;
 
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.unbiquitous.driver.execution.CompilationUtil.assertStream;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
 import static org.unbiquitous.driver.execution.CompilationUtil.compileToPath;
 import static org.unbiquitous.driver.execution.CompilationUtil.zipEntries;
-import static org.unbiquitous.driver.execution.CompilationUtil.assertStream;
-import static org.fest.assertions.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -91,7 +90,13 @@ public class ClassToolboxTest {
 		assertStream(null, box.findClass(Lua.class));
 	}
 	
+	@Test public void mustNotFindClassesOnBlacklistedAsWildCards() throws Exception{
+		box.add2BlackList("luaj-jse");
+		assertStream(null, box.findClass(Lua.class));
+	}
+	
 	@Test public void mustNotFindClassesOnBlacklistedPaths() throws Exception{
+		box.add2BlackList("uos-core");
 		box.add2BlackList("/uos_core/target/classes");
 		assertStream(null, box.findClass(Gateway.class));
 	}
@@ -164,18 +169,14 @@ public class ClassToolboxTest {
 	}
 	
 	@Test public void packageJarWithASingleAgentClass() throws Exception{
-		box.add2BlackList("uos-core-2.2.0_DEV.jar");
+		box.add2BlackList("uos-core");
 		box.add2BlackList("/uos_core/target/classes");
 		File jar = box.packageJarFor(
 				org.unbiquitous.driver.execution.dummy.DummyAgent.class);
 		
-		assertNotNull(jar);
-
-		Set<String> expected = new HashSet<String>();
-		expected.add("org/unbiquitous/driver/execution/dummy/DummyAgent.class");
-		expected.add("org/unbiquitous/driver/execution/Agent.class");
-		
-		assertEquals(expected,zipEntries(jar));
+		assertThat(zipEntries(jar)).containsOnly(
+				"org/unbiquitous/driver/execution/dummy/DummyAgent.class",
+				"org/unbiquitous/driver/execution/Agent.class");
 	}
 	
 	@SuppressWarnings("serial")
@@ -209,7 +210,7 @@ public class ClassToolboxTest {
 	 * - Must ignore primitives as classes.
 	 * - Must ignore JDK classes
 	 * - Must ignore blacklisted classes
-	 * - Must not fall into loops (CLasses referring same classes)
+	 * - Must not fall into loops (Classes referring same classes)
 	 * - Must include Superclasses
 	 * - Must include Interfaces
 	 * - Must include method parameters
