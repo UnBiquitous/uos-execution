@@ -1,4 +1,4 @@
-package org.unbiquitous.driver.execution;
+package org.unbiquitous.driver.execution.remoteExecution;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -12,9 +12,9 @@ import org.luaj.vm2.LoadState;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.lib.jse.JsePlatform;
-import org.unbiquitous.driver.execution.CallValues;
-import org.unbiquitous.driver.execution.StringInputStream;
-import org.unbiquitous.driver.execution.UosLuaCall;
+import org.unbiquitous.driver.execution.remoteExecution.CallValues;
+import org.unbiquitous.driver.execution.remoteExecution.StringInputStream;
+import org.unbiquitous.driver.execution.remoteExecution.UosLuaCall;
 
 
 public class UosLuaCallTest {

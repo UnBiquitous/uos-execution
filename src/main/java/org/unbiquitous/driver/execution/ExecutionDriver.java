@@ -14,6 +14,10 @@ import java.util.logging.Logger;
 
 import org.luaj.vm2.LoadState;
 import org.luaj.vm2.lib.jse.JsePlatform;
+import org.unbiquitous.driver.execution.executeAgent.Agent;
+import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
+import org.unbiquitous.driver.execution.remoteExecution.StringInputStream;
+import org.unbiquitous.driver.execution.remoteExecution.UosLuaCall;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;

@@ -1,11 +1,11 @@
-package org.unbiquitous.driver.execution;
+package org.unbiquitous.driver.execution.executeAgent;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.unbiquitous.driver.execution.CompilationUtil.assertStream;
-import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
-import static org.unbiquitous.driver.execution.CompilationUtil.compileToPath;
-import static org.unbiquitous.driver.execution.CompilationUtil.zipEntries;
+import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.assertStream;
+import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.compileToFile;
+import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.compileToPath;
+import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.zipEntries;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.luaj.vm2.Lua;
 import org.mockito.Mockito;
-import org.unbiquitous.driver.execution.MyAgent.AgentSpy;
+import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 
@@ -45,7 +45,7 @@ public class ClassToolboxTest {
 	// TODO: handle resources
 	@Test
 	public void findsAClassInTheSourceFolder() throws Exception {
-		String pkgRoot = "org/unbiquitous/driver/execution/";
+		String pkgRoot = "org/unbiquitous/driver/execution/executeAgent/";
 		String rootPath = currentDir + "/target/test-classes/" + pkgRoot;
 
 		InputStream dummyClass = box.findClass(DummyAgent.class);
@@ -60,7 +60,7 @@ public class ClassToolboxTest {
 
 	@Test
 	public void mustNotConfuseHomonymsClasses() throws Exception {
-		String pkgRoot = "org/unbiquitous/driver/execution/";
+		String pkgRoot = "org/unbiquitous/driver/execution/executeAgent/";
 		String rootPath = currentDir + "/target/test-classes/" + pkgRoot;
 
 		FileInputStream expected_dummy = new FileInputStream(rootPath
@@ -71,7 +71,7 @@ public class ClassToolboxTest {
 				+ "dummy/DummyAgent.class");
 		assertStream(
 				expected_other,
-				box.findClass(org.unbiquitous.driver.execution.dummy.DummyAgent.class));
+				box.findClass(org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent.class));
 	}
 
 	@Test public void mustFindAClassInsideAJar() throws Exception {
@@ -103,20 +103,20 @@ public class ClassToolboxTest {
 	
 	@Test public void mustLoadAClassFromStream() throws Exception {
 
-		String source = "package org.unbiquitous.driver.execution;"
-				+ "public class Foo extends org.unbiquitous.driver.execution.MyAgent {"
+		String source = "package org.unbiquitous.driver.execution.executeAgent;"
+				+ "public class Foo extends org.unbiquitous.driver.execution.executeAgent.MyAgent {"
 				+ "public int plusOne(Integer i){" + "	return i+1;" + "}" + "}";
 
 		String clazz = "org.unbiquitous.driver.execution.Foo";
 		File origin = compileToFile(source, clazz, tempDir);
 
-		ClassLoader loader = box.load("org.unbiquitous.driver.execution.Foo",
+		ClassLoader loader = box.load("org.unbiquitous.driver.execution.executeAgent.Foo",
 				new FileInputStream(origin));
 
 		assertEquals("default ClassLoader must me URLClassLoader.",
 						URLClassLoader.class, loader.getClass());
 		
-		Object o = loader.loadClass("org.unbiquitous.driver.execution.Foo")
+		Object o = loader.loadClass("org.unbiquitous.driver.execution.executeAgent.Foo")
 				.newInstance();
 
 		Method plusOne = o.getClass().getMethod("plusOne", Integer.class);
@@ -172,11 +172,11 @@ public class ClassToolboxTest {
 		box.add2BlackList("uos-core");
 		box.add2BlackList("/uos_core/target/classes");
 		File jar = box.packageJarFor(
-				org.unbiquitous.driver.execution.dummy.DummyAgent.class);
+				org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent.class);
 		
 		assertThat(zipEntries(jar)).containsOnly(
-				"org/unbiquitous/driver/execution/dummy/DummyAgent.class",
-				"org/unbiquitous/driver/execution/Agent.class");
+				"org/unbiquitous/driver/execution/executeAgent/dummy/DummyAgent.class",
+				"org/unbiquitous/driver/execution/executeAgent/Agent.class");
 	}
 	
 	@SuppressWarnings("serial")
@@ -232,23 +232,23 @@ public class ClassToolboxTest {
 		File jar = box.packageJarFor(MyJarAgent.class);
 		
 		assertThat(zipEntries(jar)).contains(
-			"org/unbiquitous/driver/execution/MyJarAgent.class",
-			"org/unbiquitous/driver/execution/JustAnAttributeClass.class",
-			"org/unbiquitous/driver/execution/AnotherAtributeClass.class",
-			"org/unbiquitous/driver/execution/JustACoolSuperclass.class",
-			"org/unbiquitous/driver/execution/JustANiceInterface.class",
-			"org/unbiquitous/driver/execution/JustAnotherNiceInterface.class",
-			"org/unbiquitous/driver/execution/AMethodParameter.class",
-			"org/unbiquitous/driver/execution/AMethodReturnType.class",
-			"org/unbiquitous/driver/execution/AConstantType.class",
-			"org/unbiquitous/driver/execution/AStaticReturnType.class",
-			"org/unbiquitous/driver/execution/MyJarAgent$Inner.class",
-			"org/unbiquitous/driver/execution/AInnerMethodUsedType.class",
-			"org/unbiquitous/driver/execution/AnException.class",
-			"org/unbiquitous/driver/execution/JustAnArrayAtributeClass.class",
-			"org/unbiquitous/driver/execution/JustAnMultiArrayAtributeClass.class",
-			"org/unbiquitous/driver/execution/AMethodArrayParameter.class",
-			"org/unbiquitous/driver/execution/AMethodArrayReturnType.class"
+			"org/unbiquitous/driver/execution/executeAgent/MyJarAgent.class",
+			"org/unbiquitous/driver/execution/executeAgent/JustAnAttributeClass.class",
+			"org/unbiquitous/driver/execution/executeAgent/AnotherAtributeClass.class",
+			"org/unbiquitous/driver/execution/executeAgent/JustACoolSuperclass.class",
+			"org/unbiquitous/driver/execution/executeAgent/JustANiceInterface.class",
+			"org/unbiquitous/driver/execution/executeAgent/JustAnotherNiceInterface.class",
+			"org/unbiquitous/driver/execution/executeAgent/AMethodParameter.class",
+			"org/unbiquitous/driver/execution/executeAgent/AMethodReturnType.class",
+			"org/unbiquitous/driver/execution/executeAgent/AConstantType.class",
+			"org/unbiquitous/driver/execution/executeAgent/AStaticReturnType.class",
+			"org/unbiquitous/driver/execution/executeAgent/MyJarAgent$Inner.class",
+			"org/unbiquitous/driver/execution/executeAgent/AInnerMethodUsedType.class",
+			"org/unbiquitous/driver/execution/executeAgent/AnException.class",
+			"org/unbiquitous/driver/execution/executeAgent/JustAnArrayAtributeClass.class",
+			"org/unbiquitous/driver/execution/executeAgent/JustAnMultiArrayAtributeClass.class",
+			"org/unbiquitous/driver/execution/executeAgent/AMethodArrayParameter.class",
+			"org/unbiquitous/driver/execution/executeAgent/AMethodArrayReturnType.class"
 	//		"org/unbiquitous/driver/execution/JustAGenericReferencedAtributeClass.class"
 		);
 	}
@@ -278,27 +278,27 @@ public class ClassToolboxTest {
 		File dalvik = box.packageDalvikFor(MyJarAgent.class);
 		
 		Set<String> expected = new HashSet<String>();
-		expected.add("org/unbiquitous/driver/execution/MyJarAgent.class");
-		expected.add("org/unbiquitous/driver/execution/JustAnAttributeClass.class");
-		expected.add("org/unbiquitous/driver/execution/AnotherAtributeClass.class");
-		expected.add("org/unbiquitous/driver/execution/JustACoolSuperclass.class");
-		expected.add("org/unbiquitous/driver/execution/JustANiceInterface.class");
-		expected.add("org/unbiquitous/driver/execution/JustAnotherNiceInterface.class");
-		expected.add("org/unbiquitous/driver/execution/AMethodParameter.class");
-		expected.add("org/unbiquitous/driver/execution/AMethodReturnType.class");
-		expected.add("org/unbiquitous/driver/execution/AConstantType.class");
-		expected.add("org/unbiquitous/driver/execution/AStaticReturnType.class");
-		expected.add("org/unbiquitous/driver/execution/MyJarAgent$Inner.class");
-		expected.add("org/unbiquitous/driver/execution/AInnerMethodUsedType.class");
-		expected.add("org/unbiquitous/driver/execution/AnException.class");
-		expected.add("org/unbiquitous/driver/execution/JustAnArrayAtributeClass.class");
-		expected.add("org/unbiquitous/driver/execution/JustAnMultiArrayAtributeClass.class");
-		expected.add("org/unbiquitous/driver/execution/AMethodArrayParameter.class");
-		expected.add("org/unbiquitous/driver/execution/AMethodArrayReturnType.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/MyJarAgent.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/JustAnAttributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/AnotherAtributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/JustACoolSuperclass.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/JustANiceInterface.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/JustAnotherNiceInterface.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/AMethodParameter.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/AMethodReturnType.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/AConstantType.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/AStaticReturnType.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/MyJarAgent$Inner.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/AInnerMethodUsedType.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/AnException.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/JustAnArrayAtributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/JustAnMultiArrayAtributeClass.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/AMethodArrayParameter.class");
+		expected.add("org/unbiquitous/driver/execution/executeAgent/AMethodArrayReturnType.class");
 		expected.add("classes.dex");
 		expected.add("META-INF/MANIFEST.MF");
 		
-		assertEquals(expected,zipEntries(dalvik));
+		assertThat(zipEntries(dalvik)).containsOnly(expected.toArray(new String[]{}));
 	}
 	
 	@Test(expected=RuntimeException.class) 

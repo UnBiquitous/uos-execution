@@ -1,4 +1,4 @@
-package org.unbiquitous.driver.execution;
+package org.unbiquitous.driver.execution.executeAgent;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -6,8 +6,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.unbiquitous.driver.execution.CompilationUtil.zipEntries;
-import static org.unbiquitous.driver.execution.CompilationUtil.assertStream;
+import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.assertStream;
+import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.zipEntries;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -24,7 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
-import org.unbiquitous.driver.execution.dummy.DummyAgent;
+import org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.ServiceCallException;

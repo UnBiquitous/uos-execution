@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.unbiquitous.driver.execution.ExecutionDriver;
+import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
 
 import br.unb.unbiquitous.ubiquitos.uos.driverManager.UosDriver;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDriver;

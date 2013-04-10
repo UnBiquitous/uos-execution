@@ -1,4 +1,4 @@
-package org.unbiquitous.driver.execution;
+package org.unbiquitous.driver.execution.executeAgent;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -7,9 +7,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.unbiquitous.driver.execution.CompilationUtil.compileToClass;
-import static org.unbiquitous.driver.execution.CompilationUtil.compileToFile;
-import static org.unbiquitous.driver.execution.CompilationUtil.compileToPath;
+import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.compileToClass;
+import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.compileToFile;
+import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.compileToPath;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.unbiquitous.driver.execution.ExecutionDriver;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;
@@ -112,10 +113,10 @@ public class ExecutionDriverTest_executeAgent {
 		final Integer before = MyAgent.AgentSpy.count;
 		
 		String source = 
-				"package org.unbiquitous.driver.execution;"
-			+	"import org.unbiquitous.driver.execution.MyAgent.AgentSpy;"
+				"package org.unbiquitous.driver.execution.executeAgent;"
+			+	"import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;"
 			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
-			+	"public class Foo2 extends org.unbiquitous.driver.execution.Agent {"
+			+	"public class Foo2 extends org.unbiquitous.driver.execution.executeAgent.Agent {"
 			+	"	int increment = 1;"
 			+	"	public static Foo2 getFoo2(){"
 			+	"		Foo2 f = new Foo2();"
@@ -126,7 +127,7 @@ public class ExecutionDriverTest_executeAgent {
 			+	"		AgentSpy.count+=increment;"
 			+	"	}"
 			+	"}";
-		final String clazz = "org.unbiquitous.driver.execution.Foo2";
+		final String clazz = "org.unbiquitous.driver.execution.executeAgent.Foo2";
 		
 		File clazzFile = compileToFile(source,clazz, tempDir);
 		Class c= compileToClass(source,clazz);
@@ -154,16 +155,16 @@ public class ExecutionDriverTest_executeAgent {
 		final Integer before = MyAgent.AgentSpy.count;
 		
 		String source = 
-				"package org.unbiquitous.driver.execution;"
-			+	"import org.unbiquitous.driver.execution.MyAgent.AgentSpy;"
+				"package org.unbiquitous.driver.execution.executeAgent;"
+			+	"import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;"
 			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
-			+	"public class Foo2 extends org.unbiquitous.driver.execution.Agent {"
+			+	"public class Foo2 extends org.unbiquitous.driver.execution.executeAgent.Agent {"
 			+	"	int increment = 21;"
 			+	"	public void run(Gateway gateway){"
 			+	"		AgentSpy.count+=increment;"
 			+	"	}"
 			+	"}";
-		final String clazz = "org.unbiquitous.driver.execution.Foo2";
+		final String clazz = "org.unbiquitous.driver.execution.executeAgent.Foo2";
 		
 		
 		File path = compileToPath(new String[]{source},new String[]{clazz},tempDir);
@@ -200,10 +201,10 @@ public class ExecutionDriverTest_executeAgent {
 		final Integer before = MyAgent.AgentSpy.count;
 		
 		String source = 
-				"package org.unbiquitous.driver.execution;"
-			+	"import org.unbiquitous.driver.execution.MyAgent.AgentSpy;"
+				"package org.unbiquitous.driver.execution.executeAgent;"
+			+	"import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;"
 			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
-			+	"public class Foo3 extends org.unbiquitous.driver.execution.Agent {"
+			+	"public class Foo3 extends org.unbiquitous.driver.execution.executeAgent.Agent {"
 			+	"	int increment = 1;"
 			+	"	public static Foo3 getFoo3(){"
 			+	"		Foo3 f = new Foo3();"
@@ -214,7 +215,7 @@ public class ExecutionDriverTest_executeAgent {
 			+	"		AgentSpy.count+=increment;"
 			+	"	}"
 			+	"}";
-		final String clazz = "org.unbiquitous.driver.execution.Foo3";
+		final String clazz = "org.unbiquitous.driver.execution.executeAgent.Foo3";
 		
 		File clazzFile = compileToFile(source,clazz, tempDir);
 		Class<?> c= compileToClass(source,clazz);

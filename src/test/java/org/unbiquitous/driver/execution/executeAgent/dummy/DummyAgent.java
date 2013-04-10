@@ -1,7 +1,7 @@
-package org.unbiquitous.driver.execution.dummy;
+package org.unbiquitous.driver.execution.executeAgent.dummy;
 
-import org.unbiquitous.driver.execution.Agent;
-import org.unbiquitous.driver.execution.ExecutionDriverTest_executeAgent;
+import org.unbiquitous.driver.execution.executeAgent.Agent;
+import org.unbiquitous.driver.execution.executeAgent.ExecutionDriverTest_executeAgent;
 
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 
