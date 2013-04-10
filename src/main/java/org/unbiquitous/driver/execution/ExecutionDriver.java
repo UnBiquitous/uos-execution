@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -194,8 +196,8 @@ public class ExecutionDriver implements UosDriver {
 				if (o instanceof Agent){
 					((Agent)o).run(gateway);
 				}else{
-					Method run = o.getClass().getMethod("run", Gateway.class);
-					run.invoke(o, gateway);
+					Method run = o.getClass().getMethod("run", Map.class);
+					run.invoke(o, new HashMap());
 				}
 			} catch (Exception e) {
 				logger.log(Level.SEVERE,"Problems on running agent",e);

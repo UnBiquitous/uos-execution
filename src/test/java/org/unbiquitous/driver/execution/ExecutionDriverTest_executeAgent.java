@@ -23,6 +23,7 @@ import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Serializable;
+import java.util.Map;
 import java.util.zip.ZipOutputStream;
 
 import org.junit.Before;
@@ -92,16 +93,16 @@ public class ExecutionDriverTest_executeAgent {
 		MyAnonymousAgent a = new MyAnonymousAgent();
 		a.sleepTime = 1000;
 		
-		final Integer before = MyAnonymousAgent.AgentSpy.count;
+		final Integer before = MyAnonymousAgent.Spy.count;
 		
 		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
-		assertEquals((Integer)(before),MyAnonymousAgent.AgentSpy.count);
+		assertEquals((Integer)(before),MyAnonymousAgent.Spy.count);
 		assertEventuallyTrue("Must increment the SpyCount eventually", 
 				a.sleepTime + 1000, new EventuallyAssert(){
 				public boolean assertion(){
-					return (Integer)(before+1) == MyAnonymousAgent.AgentSpy.count;
+					return (Integer)(before+1) == MyAnonymousAgent.Spy.count;
 				}
 			});
 	}
@@ -267,6 +268,28 @@ public class ExecutionDriverTest_executeAgent {
 				}
 			});
 		assertEquals(g, MyAgent.AgentSpy.lastAgent.gateway);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test public void theAnonymousAgentMustHaveAccessToAMapGateway() throws Exception{
+		MyAnonymousAgent a = new MyAnonymousAgent();
+		
+		final Gateway g = mock(Gateway.class);
+		
+		driver.init(g, null);
+		execute(a);
+		
+		assertNull("No error should be found.",response.getError());
+		assertEventuallyTrue("The gateway mus be the same as the one informed", 
+				1000, new EventuallyAssert(){
+				public boolean assertion(){
+					return MyAnonymousAgent.Spy.lastAgent != null && 
+							MyAnonymousAgent.Spy.lastAgent.gateway != null;
+				}
+			});
+		//TODO: validate if it's a DelegateMap
+		assertThat(MyAnonymousAgent.Spy.lastAgent.gateway)
+													.isInstanceOf(Map.class);
 	}
 	
 	//TODO: SHouldn't wait 4 ever for a agent to be received
