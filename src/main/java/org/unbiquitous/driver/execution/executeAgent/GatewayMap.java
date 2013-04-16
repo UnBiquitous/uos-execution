@@ -1,13 +1,27 @@
 package org.unbiquitous.driver.execution.executeAgent;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.bcel.generic.NEW;
+
+import br.unb.unbiquitous.json.JSONException;
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
+import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.NotifyException;
 import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.ServiceCallException;
+import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.UosEventListener;
+import br.unb.unbiquitous.ubiquitos.uos.driverManager.DriverData;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDevice;
+import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.json.JSONDevice;
+import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.json.JSONDriver;
 import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
+import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
+import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.json.JSONServiceCall;
+import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.json.JSONServiceResponse;
 
 @SuppressWarnings("rawtypes")
 public class GatewayMap implements Map{
@@ -21,78 +35,106 @@ public class GatewayMap implements Map{
 	@Override
 	public Object put(Object key, Object value) {
 		try {
+			String method = (String) key;
 			Map parameters = (Map) value;
-			return delegate.callService(	(UpDevice) parameters.get("device"), 
-									(ServiceCall)parameters.get("serviceCall"));
-		} catch (ServiceCallException e) {
+			if (method == "callService"){
+				return callService(parameters);
+			}else if (method == "registerForEvent"){
+				return registerForEvent(parameters);
+			}else if (method == "getCurrentDevice") {
+				return new JSONDevice(delegate.getCurrentDevice()).toMap();
+			}else if (method == "listDrivers") {
+				return listDrivers(parameters);
+			}
+			
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+		return null;
+	}
+
+	private Object listDrivers(Map parameters) throws JSONException {
+		List<DriverData> listDrivers = delegate.listDrivers((String)parameters.get("driverName"));
+		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+		if (listDrivers != null){
+			for (DriverData data : listDrivers){
+				Map<String, Object> new_rep = new HashMap<String, Object>();
+				new_rep.put("driver",new JSONDriver(data.getDriver()).toMap());
+				new_rep.put("device",new JSONDevice(data.getDevice()).toMap());
+				new_rep.put("instanceID",data.getInstanceID());
+				result.add(new_rep);
+			}
+		}
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Object callService(Map parameters) throws ServiceCallException, JSONException {
+		UpDevice device = new JSONDevice((Map) parameters.get("device")).getAsObject();
+		ServiceResponse response ;
+		if (parameters.size() == 2){
+			ServiceCall call = new JSONServiceCall(
+											(Map)parameters.get("serviceCall")
+													).getAsObject();
+			response = delegate.callService(	device, call);
+		}else{
+			response =  delegate.callService(	
+					device, 
+					(String)parameters.get("serviceName"),
+					(String)parameters.get("driverName"),
+					(String)parameters.get("instanceId"),
+					(String)parameters.get("securityType"),
+					(Map)parameters.get("parameters")
+					);
+		}
+		return new JSONServiceResponse(response).toMap();
 	}
 	
-	@Override
-	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
+	private Object registerForEvent(Map parameters) throws NotifyException, JSONException {
+		UosEventListener listener	= (UosEventListener) parameters.get("listener");
+		UpDevice device = new JSONDevice((Map) parameters.get("device")).getAsObject();
+		String driver				= (String)parameters.get("driver");
+		String eventKey				= (String)parameters.get("eventKey");
+		
+		if (parameters.size() == 4){
+			delegate.registerForEvent(listener,device,driver,eventKey);
+		}else{
+			delegate.registerForEvent(listener,device,driver,
+								(String)parameters.get("instanceId"),eventKey);
+		}
+		return null;
 	}
-
-	@Override
-	public boolean isEmpty() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean containsKey(Object key) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean containsValue(Object value) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
+	
 	public Object get(Object key) {
-		// TODO Auto-generated method stub
+		String method = (String) key;
+		if (method == "getCurrentDevice"){
+			try {
+				return new JSONDevice(delegate.getCurrentDevice()).toMap();
+			} catch (JSONException e) {
+				throw new RuntimeException(e);
+			}
+		}
 		return null;
 	}
+	
+	public int size() {return 0;}
 
-	@Override
-	public Object remove(Object key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public boolean isEmpty() {return false;}
 
-	@Override
-	public void putAll(Map m) {
-		// TODO Auto-generated method stub
-		
-	}
+	public boolean containsKey(Object key) {return false;}
 
-	@Override
-	public void clear() {
-		// TODO Auto-generated method stub
-		
-	}
+	public boolean containsValue(Object value) {return false;}
 
-	@Override
-	public Set keySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public Object remove(Object key) {return null;}
 
-	@Override
-	public Collection values() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public void putAll(Map m) {}
 
-	@Override
-	public Set entrySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public void clear() {}
+
+	public Set keySet() {return null;}
+
+	public Collection values() {return null;}
+
+	public Set entrySet() {return null;}
 
 }

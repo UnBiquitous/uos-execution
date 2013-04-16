@@ -43,6 +43,7 @@ public class ClassToolbox {
 	private static Logger logger = Logger.getLogger(ClassToolbox.class.getName());
 	
 	/**
+	 * TODO: http://lsd.luminis.nl/osgi-on-google-android-using-apache-felix/
 	 * In the case of Android (Dalvik platform) the platform must be:
 	 * 
 	 * <createClassLoader>
