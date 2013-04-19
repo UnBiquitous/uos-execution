@@ -31,11 +31,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.unbiquitous.driver.execution.ExecutionDriver;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.application.UOSMessageContext;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class ExecutionDriverTest_executeAgent {
 
@@ -115,7 +115,7 @@ public class ExecutionDriverTest_executeAgent {
 		String source = 
 				"package org.unbiquitous.driver.execution.executeAgent;"
 			+	"import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;"
-			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
+			+	"import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;"
 			+	"public class Foo2 extends org.unbiquitous.driver.execution.executeAgent.Agent {"
 			+	"	int increment = 1;"
 			+	"	public static Foo2 getFoo2(){"
@@ -157,7 +157,7 @@ public class ExecutionDriverTest_executeAgent {
 		String source = 
 				"package org.unbiquitous.driver.execution.executeAgent;"
 			+	"import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;"
-			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
+			+	"import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;"
 			+	"public class Foo2 extends org.unbiquitous.driver.execution.executeAgent.Agent {"
 			+	"	int increment = 21;"
 			+	"	public void run(Gateway gateway){"
@@ -203,7 +203,7 @@ public class ExecutionDriverTest_executeAgent {
 		String source = 
 				"package org.unbiquitous.driver.execution.executeAgent;"
 			+	"import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;"
-			+	"import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;"
+			+	"import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;"
 			+	"public class Foo3 extends org.unbiquitous.driver.execution.executeAgent.Agent {"
 			+	"	int increment = 1;"
 			+	"	public static Foo3 getFoo3(){"

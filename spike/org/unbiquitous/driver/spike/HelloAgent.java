@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.logging.Logger;
 
 import org.unbiquitous.driver.execution.executeAgent.Agent;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 
 public class HelloAgent extends Agent implements Serializable{
 	private static final long serialVersionUID = -5711645697892564502L;

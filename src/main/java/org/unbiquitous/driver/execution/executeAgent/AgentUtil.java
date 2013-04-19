@@ -7,13 +7,14 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Modifier;
 
-import br.unb.unbiquitous.ubiquitos.Logger;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.ServiceCallException;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDevice;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall.ServiceType;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.Logger;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
+
 
 //TODO: Doc
 public class AgentUtil {

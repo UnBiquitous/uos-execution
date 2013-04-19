@@ -6,11 +6,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.unbiquitous.driver.execution.ExecutionDriver;
 import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
+import org.unbiquitous.uos.core.driverManager.UosDriver;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpService;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpService.ParameterType;
 
-import br.unb.unbiquitous.ubiquitos.uos.driverManager.UosDriver;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDriver;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpService;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpService.ParameterType;
 
 public class ExecutionDriverTest {
 

@@ -215,7 +215,6 @@ class ClassFinder {
 //			try {
 //				if (cached != null)		cached.reset();
 //			} catch (Exception e) {
-//				System.out.println(clazz);
 //				e.printStackTrace();
 //			}
 //			return cached;

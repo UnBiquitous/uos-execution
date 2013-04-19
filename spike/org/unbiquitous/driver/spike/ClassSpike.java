@@ -24,8 +24,9 @@ public class ClassSpike {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		dependencyDiscovery();
+//		dependencyDiscovery();
 //		properyFun();
+		propertyList();
 //		threadStackFun();
 //		for(Object key :properties.keySet()){
 //			printProp(properties, key.toString());
@@ -52,6 +53,13 @@ public class ClassSpike {
 		r.run();
 	}
 
+	private static void propertyList(){
+		final Properties properties = System.getProperties();
+		for (Object key:properties.keySet()){
+			printProp(properties, key.toString());
+		}
+	}
+	
 	private static void properyFun() throws UnknownHostException {
 		final Properties properties = System.getProperties();
 		System.out.println("MyNameIs:"+InetAddress.getLocalHost().getHostName());

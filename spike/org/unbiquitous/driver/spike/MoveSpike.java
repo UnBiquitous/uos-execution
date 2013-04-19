@@ -5,11 +5,11 @@ import java.util.ListResourceBundle;
 import java.util.ResourceBundle;
 
 import org.unbiquitous.driver.execution.executeAgent.AgentUtil;
+import org.unbiquitous.uos.core.Logger;
+import org.unbiquitous.uos.core.UOSApplicationContext;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.driverManager.DriverData;
 
-import br.unb.unbiquitous.ubiquitos.Logger;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.context.UOSApplicationContext;
-import br.unb.unbiquitous.ubiquitos.uos.driverManager.DriverData;
 
 public class MoveSpike {
 

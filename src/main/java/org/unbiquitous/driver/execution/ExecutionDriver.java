@@ -18,14 +18,14 @@ import org.unbiquitous.driver.execution.executeAgent.Agent;
 import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
 import org.unbiquitous.driver.execution.remoteExecution.StringInputStream;
 import org.unbiquitous.driver.execution.remoteExecution.UosLuaCall;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.application.UOSMessageContext;
+import org.unbiquitous.uos.core.driverManager.UosDriver;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpService.ParameterType;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;
-import br.unb.unbiquitous.ubiquitos.uos.driverManager.UosDriver;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDriver;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpService.ParameterType;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 /**
  * This driver enables Code Mobility to the middleware.

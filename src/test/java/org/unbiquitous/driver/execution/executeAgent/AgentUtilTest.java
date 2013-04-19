@@ -25,14 +25,14 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
+import org.unbiquitous.uos.core.application.UOSMessageContext;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.ServiceCallException;
-import br.unb.unbiquitous.ubiquitos.uos.application.UOSMessageContext;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDevice;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall.ServiceType;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class AgentUtilTest {
 	@Rule

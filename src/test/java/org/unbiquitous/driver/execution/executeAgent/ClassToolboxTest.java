@@ -24,8 +24,8 @@ import org.junit.rules.TemporaryFolder;
 import org.luaj.vm2.Lua;
 import org.mockito.Mockito;
 import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 
 public class ClassToolboxTest {
 	@Rule

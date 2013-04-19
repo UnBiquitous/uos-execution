@@ -8,20 +8,20 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.bcel.generic.NEW;
+import org.unbiquitous.json.JSONException;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.adaptabitilyEngine.NotifyException;
+import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
+import org.unbiquitous.uos.core.adaptabitilyEngine.UosEventListener;
+import org.unbiquitous.uos.core.driverManager.DriverData;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
+import org.unbiquitous.uos.core.messageEngine.dataType.json.JSONDevice;
+import org.unbiquitous.uos.core.messageEngine.dataType.json.JSONDriver;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceResponse;
 
-import br.unb.unbiquitous.json.JSONException;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.NotifyException;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.ServiceCallException;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.UosEventListener;
-import br.unb.unbiquitous.ubiquitos.uos.driverManager.DriverData;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDevice;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.json.JSONDevice;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.json.JSONDriver;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.json.JSONServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.json.JSONServiceResponse;
 
 @SuppressWarnings("rawtypes")
 public class GatewayMap implements Map{

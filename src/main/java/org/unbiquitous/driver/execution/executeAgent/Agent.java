@@ -2,7 +2,8 @@ package org.unbiquitous.driver.execution.executeAgent;
 
 import java.io.Serializable;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+
 
 public abstract class Agent implements Serializable{
 	private static final long serialVersionUID = 8386943272111021563L;

@@ -1,7 +1,7 @@
 package org.unbiquitous.driver.execution.executeAgent;
 
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 
 public class MyAgent extends Agent{
 	

@@ -2,8 +2,8 @@ package org.unbiquitous.driver.execution.executeAgent.dummy;
 
 import org.unbiquitous.driver.execution.executeAgent.Agent;
 import org.unbiquitous.driver.execution.executeAgent.ExecutionDriverTest_executeAgent;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
 
 /**
  *	This class is just a Dummy used at the {@link ExecutionDriverTest_executeAgent}

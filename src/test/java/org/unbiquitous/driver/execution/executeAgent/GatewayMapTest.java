@@ -12,18 +12,18 @@ import java.util.Map.Entry;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.adaptabitilyEngine.UosEventListener;
+import org.unbiquitous.uos.core.driverManager.DriverData;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
+import org.unbiquitous.uos.core.messageEngine.dataType.json.JSONDevice;
+import org.unbiquitous.uos.core.messageEngine.dataType.json.JSONDriver;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceResponse;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.UosEventListener;
-import br.unb.unbiquitous.ubiquitos.uos.driverManager.DriverData;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDevice;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDriver;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.json.JSONDevice;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.json.JSONDriver;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.json.JSONServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.json.JSONServiceResponse;
 
 public class GatewayMapTest {
 

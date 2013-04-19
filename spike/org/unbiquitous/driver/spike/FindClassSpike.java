@@ -14,14 +14,14 @@ import java.util.zip.ZipInputStream;
 import org.mockito.Mockito;
 import org.unbiquitous.driver.execution.ExecutionDriver;
 import org.unbiquitous.driver.execution.executeAgent.Agent;
+import org.unbiquitous.uos.core.Logger;
+import org.unbiquitous.uos.core.UOSApplicationContext;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
 
-import br.unb.unbiquitous.ubiquitos.Logger;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.context.UOSApplicationContext;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDevice;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall.ServiceType;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
 
 public class FindClassSpike {
 	private static final Logger logger = Logger.getLogger(FindClassSpike.class);

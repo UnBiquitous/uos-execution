@@ -5,15 +5,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.Gateway;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.NotifyException;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.ServiceCallException;
-import br.unb.unbiquitous.ubiquitos.uos.adaptabitilyEngine.UosEventListener;
-import br.unb.unbiquitous.ubiquitos.uos.driverManager.DriverData;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.dataType.UpDevice;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.Notify;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceCall;
-import br.unb.unbiquitous.ubiquitos.uos.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.adaptabitilyEngine.NotifyException;
+import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
+import org.unbiquitous.uos.core.adaptabitilyEngine.UosEventListener;
+import org.unbiquitous.uos.core.driverManager.DriverData;
+import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
+import org.unbiquitous.uos.core.messageEngine.messages.Notify;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+
 
 public class HelloNotAgent implements Serializable {
 	private static final long serialVersionUID = -2961159464632336104L;
