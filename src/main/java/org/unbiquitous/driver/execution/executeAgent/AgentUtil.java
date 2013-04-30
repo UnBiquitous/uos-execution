@@ -19,14 +19,24 @@ import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
 //TODO: Doc
 public class AgentUtil {
 
-	private static ClassToolbox toolbox = new ClassToolbox();
+	private ClassToolbox toolbox = new ClassToolbox();
+	private static AgentUtil instance;
+	
+	public static AgentUtil getInstance(){
+		if (AgentUtil.instance != null) return AgentUtil.instance;
+		return new AgentUtil(); 
+	}
+	public static void setInstance(AgentUtil instance){
+		AgentUtil.instance = instance;
+	}
+	
 
-	public static void move(Agent agent, File pkg, UpDevice target, Gateway gateway) throws Exception {
+	public void move(Agent agent, File pkg, UpDevice target, Gateway gateway) throws Exception {
 		toolbox.setPackageFor(agent.getClass(), pkg);
 		move(agent, target, gateway);
 	}
 	
-	public static void move(Agent agent, UpDevice target, Gateway gateway) throws Exception {
+	public void move(Agent agent, UpDevice target, Gateway gateway) throws Exception {
 		if (agent.getClass().getModifiers() != Modifier.PUBLIC)
 			throw new RuntimeException("Agent class must be public");
 		
@@ -40,15 +50,15 @@ public class AgentUtil {
 		}
 	}
 
-	private static void sendJar(Agent agent, ServiceResponse r) throws Exception{
+	private void sendJar(Agent agent, ServiceResponse r) throws Exception{
 		sendPackage(r, toolbox.packageJarFor(agent.getClass()));
 	}
 
-	private static void sendDalvik(Agent agent, ServiceResponse r) throws Exception{
+	private void sendDalvik(Agent agent, ServiceResponse r) throws Exception{
 		sendPackage(r, toolbox.packageDalvikFor(agent.getClass()));
 	}
 
-	private static void sendPackage(ServiceResponse r, File pkg) throws IOException {
+	private void sendPackage(ServiceResponse r, File pkg) throws IOException {
 		FileInputStream reader = new FileInputStream(pkg);
 		byte[] buff = new byte[1024];
 		int read = 0;
@@ -60,14 +70,14 @@ public class AgentUtil {
 		reader.close();
 	}
 	
-	private static void sendAgent(Agent agent, ServiceResponse r) throws IOException {
+	private void sendAgent(Agent agent, ServiceResponse r) throws IOException {
 		ObjectOutputStream writer_agent = new ObjectOutputStream(
 								r.getMessageContext().getDataOutputStream(0));
 		writer_agent.writeObject(agent);
 		writer_agent.close();
 	}
 
-	private static ServiceResponse callExecute(UpDevice target, Gateway gateway)
+	private ServiceResponse callExecute(UpDevice target, Gateway gateway)
 			throws ServiceCallException {
 		ServiceCall execute = new ServiceCall( "uos.ExecutionDriver","executeAgent");
 		execute.setChannels(2);

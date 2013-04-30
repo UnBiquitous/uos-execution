@@ -49,7 +49,7 @@ public class MoveSpike {
 		hello.init(u.getGateway());
 //		hello.moveTo(new UpDevice("MacAgentTarget"));
 		logger.debug("Start Moving to "+drivers.get(0).getDevice());
-		AgentUtil.move(hello, drivers.get(0).getDevice(), g);
+		AgentUtil.getInstance().move(hello, drivers.get(0).getDevice(), g);
 //		moveTo(hello,drivers.get(0).getDevice(),g);
 	}
 	

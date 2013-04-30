@@ -39,16 +39,19 @@ public class AgentUtilTest {
     public TemporaryFolder folder= new TemporaryFolder();
 	
 	private static ClassToolbox box;
+
+	private static AgentUtil agentUtil;
 	
 	@BeforeClass public static void init(){
 		box = new ClassToolbox();
+		agentUtil = AgentUtil.getInstance();
 	}
 	
 	@Test public void movingCallsExecuteAgentOnExecutionDriver() throws Exception{
 		Gateway gateway = mockGateway(new ByteArrayOutputStream(), new ByteArrayOutputStream());
 		
 		UpDevice target = new UpDevice("target");
-		AgentUtil.move(new MyAgent(),target,gateway);
+		agentUtil.move(new MyAgent(),target,gateway);
 		
 		ArgumentCaptor<UpDevice> deviceCaptor = ArgumentCaptor.forClass(UpDevice.class);
 		ArgumentCaptor<ServiceCall> callCaptor = ArgumentCaptor.forClass(ServiceCall.class);
@@ -75,7 +78,7 @@ public class AgentUtilTest {
 												new ByteArrayOutputStream());
 		
 		UpDevice target = new UpDevice("target");
-		AgentUtil.move(agent,target,gateway);
+		agentUtil.move(agent,target,gateway);
 		
 		assertArrayEquals(serialize(agent), agentSpy.toByteArray());
 	}
@@ -88,7 +91,7 @@ public class AgentUtilTest {
 						new BufferedOutputStream(new FileOutputStream(jarSpy)));
 		
 		UpDevice target = new UpDevice("target");
-		AgentUtil.move(agent,target,gateway);
+		agentUtil.move(agent,target,gateway);
 		
 		File jar = box.packageJarFor(agent.getClass());
 		
@@ -108,7 +111,7 @@ public class AgentUtilTest {
 		writer.close();
 		
 		UpDevice target = new UpDevice("target");
-		AgentUtil.move(agent,dummyPkg, target,gateway);
+		agentUtil.move(agent,dummyPkg, target,gateway);
 		
 		assertStream(new FileInputStream(dummyPkg), 
 												new FileInputStream(jarSpy));
@@ -123,7 +126,7 @@ public class AgentUtilTest {
 		
 		UpDevice target = new UpDevice("target");
 		target.addProperty("platform", "Dalvik");
-		AgentUtil.move(agent,target,gateway);
+		agentUtil.move(agent,target,gateway);
 		
 		File jar = box.packageJarFor(agent.getClass());
 		File dalvik = box.convertToDalvik(folder.getRoot(), jar, 
@@ -136,7 +139,7 @@ public class AgentUtilTest {
 		Gateway gateway = mockGateway(new ByteArrayOutputStream(), new ByteArrayOutputStream());
 		
 		UpDevice target = new UpDevice("target");
-		AgentUtil.move(new Agent() {
+		agentUtil.move(new Agent() {
 			private static final long serialVersionUID = 2420826408820982276L;
 			public void run(Gateway gateway) {}
 		},target,gateway);
@@ -147,7 +150,7 @@ public class AgentUtilTest {
 		Gateway gateway = mockGateway(new ByteArrayOutputStream(), new ByteArrayOutputStream());
 		
 		UpDevice target = new UpDevice("target");
-		AgentUtil.move(new ShyAgent(),target,gateway);
+		agentUtil.move(new ShyAgent(),target,gateway);
 	}
 	
 	@Test public void GatewayMustBeTransient() throws Exception{
@@ -156,7 +159,7 @@ public class AgentUtilTest {
 		UpDevice target = new UpDevice("target");
 		final MyAgent agent = new MyAgent();
 		agent.init(gateway);
-		AgentUtil.move(agent,target,gateway);
+		agentUtil.move(agent,target,gateway);
 	}
 	
 	//TODO: We must assure that the properties are all transient

@@ -1,5 +1,6 @@
 package org.unbiquitous.driver.spike;
 
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -58,6 +59,14 @@ public class ClassSpike {
 		for (Object key:properties.keySet()){
 			printProp(properties, key.toString());
 		}
+		
+		Properties p = System.getProperties();   
+	    System.out.print("Total CPU:");
+	    System.out.println(Runtime.getRuntime().availableProcessors());
+	    System.out.println("Max Memory:" + Runtime.getRuntime().maxMemory() + "\n" + "available Memory:" + Runtime.getRuntime().freeMemory());
+	    System.out.println("os.name=" + System.getProperty("os.name"));
+//	    ManagementFactory.getThreadMXBean().
+	    System.out.println(System.getenv());
 	}
 	
 	private static void properyFun() throws UnknownHostException {
