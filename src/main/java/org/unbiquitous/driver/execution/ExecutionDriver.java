@@ -107,7 +107,7 @@ public class ExecutionDriver implements UosDriver {
 			script_id++;
 			
 			for(String key: call.getParameters().keySet()){
-				UosLuaCall.values().setValue(script_id, key,call.getParameter(key));
+				UosLuaCall.values().setValue(script_id, key,call.getParameterString(key));
 			}
 			
 			StringBuffer script = new StringBuffer();
@@ -143,7 +143,7 @@ public class ExecutionDriver implements UosDriver {
 			boolean hasJar = false;
 			String className = null;
 			if (call.getParameter("jar") != null) hasJar = true;
-			else	className = call.getParameter("class");
+			else	className = call.getParameterString("class");
 			
 			/*Question: 
 					Should it receive the size of class/jar ? 

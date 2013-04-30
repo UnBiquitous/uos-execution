@@ -61,7 +61,7 @@ public class GatewayMapTest {
 		String driverName	= "d1"; 
 		String instanceId	= "i1";
 		String securityType	= "k1";
-		Map<String, String> parameters = new HashMap<String, String>();
+		Map<String, Object> parameters = new HashMap<String, Object>();
 
 		Map<String, Object> callParams = new HashMap<String, Object>();
 		callParams.put("device", new JSONDevice(device).toMap());
