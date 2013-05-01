@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.Modifier;
 
 import org.unbiquitous.uos.core.Logger;
@@ -31,12 +32,12 @@ public class AgentUtil {
 	}
 	
 
-	public void move(Agent agent, File pkg, UpDevice target, Gateway gateway) throws Exception {
+	public void move(Serializable agent, File pkg, UpDevice target, Gateway gateway) throws Exception {
 		toolbox.setPackageFor(agent.getClass(), pkg);
 		move(agent, target, gateway);
 	}
 	
-	public void move(Agent agent, UpDevice target, Gateway gateway) throws Exception {
+	public void move(Serializable agent, UpDevice target, Gateway gateway) throws Exception {
 		if (agent.getClass().getModifiers() != Modifier.PUBLIC)
 			throw new RuntimeException("Agent class must be public");
 		
@@ -50,11 +51,11 @@ public class AgentUtil {
 		}
 	}
 
-	private void sendJar(Agent agent, ServiceResponse r) throws Exception{
+	private void sendJar(Serializable agent, ServiceResponse r) throws Exception{
 		sendPackage(r, toolbox.packageJarFor(agent.getClass()));
 	}
 
-	private void sendDalvik(Agent agent, ServiceResponse r) throws Exception{
+	private void sendDalvik(Serializable agent, ServiceResponse r) throws Exception{
 		sendPackage(r, toolbox.packageDalvikFor(agent.getClass()));
 	}
 
@@ -70,7 +71,7 @@ public class AgentUtil {
 		reader.close();
 	}
 	
-	private void sendAgent(Agent agent, ServiceResponse r) throws IOException {
+	private void sendAgent(Serializable agent, ServiceResponse r) throws IOException {
 		ObjectOutputStream writer_agent = new ObjectOutputStream(
 								r.getMessageContext().getDataOutputStream(0));
 		writer_agent.writeObject(agent);
