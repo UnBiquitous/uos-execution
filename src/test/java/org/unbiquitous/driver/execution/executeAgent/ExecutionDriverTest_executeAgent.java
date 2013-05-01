@@ -90,12 +90,14 @@ public class ExecutionDriverTest_executeAgent {
 			});
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test public void runTheCalledAnonymousAgentOnAThread() throws Exception{
 		MyAnonymousAgent a = new MyAnonymousAgent();
 		a.sleepTime = 1000;
 		
 		final Integer before = MyAnonymousAgent.Spy.count;
 		
+		driver.init(mock(Gateway.class), "me");
 		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
@@ -106,6 +108,10 @@ public class ExecutionDriverTest_executeAgent {
 					return (Integer)(before+1) == MyAnonymousAgent.Spy.count;
 				}
 			});
+		assertThat(MyAnonymousAgent.Spy.lastAgent.gateway)
+											.isInstanceOf(GatewayMap.class);
+		assertThat(((GatewayMap)MyAnonymousAgent.Spy.lastAgent.gateway).delegate)
+											.isInstanceOf(Gateway.class);
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })

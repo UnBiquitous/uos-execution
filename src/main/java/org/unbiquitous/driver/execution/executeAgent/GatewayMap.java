@@ -25,7 +25,7 @@ import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceResponse;
 @SuppressWarnings("rawtypes")
 public class GatewayMap implements Map{
 
-	private final Gateway delegate;
+	final Gateway delegate;
 
 	public GatewayMap(Gateway delegate) {
 		this.delegate = delegate;

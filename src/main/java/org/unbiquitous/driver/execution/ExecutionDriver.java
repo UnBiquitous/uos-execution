@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -16,6 +15,7 @@ import org.luaj.vm2.LoadState;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.unbiquitous.driver.execution.executeAgent.Agent;
 import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
+import org.unbiquitous.driver.execution.executeAgent.GatewayMap;
 import org.unbiquitous.driver.execution.remoteExecution.StringInputStream;
 import org.unbiquitous.driver.execution.remoteExecution.UosLuaCall;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
@@ -201,8 +201,7 @@ public class ExecutionDriver implements UosDriver {
 					((Agent)o).run(gateway);
 				}else{
 					Method run = o.getClass().getMethod("run", Map.class);
-					//FIXME: must be a GatewayMap
-					run.invoke(o, new HashMap());
+					run.invoke(o, new GatewayMap(gateway));
 				}
 			} catch (Exception e) {
 				logger.log(Level.SEVERE,"Problems on running agent",e);
