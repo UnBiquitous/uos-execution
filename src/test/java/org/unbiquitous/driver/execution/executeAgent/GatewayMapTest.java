@@ -125,7 +125,7 @@ public class GatewayMapTest {
 	@Test public void convertMapGetToAgetCurrentDevice() throws Exception{
 		when(delegate.getCurrentDevice()).thenReturn(device);
 		
-		assertEquals(new JSONDevice(device).toMap(),(Map)map.get("getCurrentDevice"));
+		assertEquals(new JSONDevice(device).toMap(),(Map<?, ?>)map.get("getCurrentDevice"));
 		
 		verify(delegate).getCurrentDevice();
 	}
@@ -133,7 +133,7 @@ public class GatewayMapTest {
 	@Test public void convertMapPutToAgetCurrentDevice() throws Exception{
 		when(delegate.getCurrentDevice()).thenReturn(device);
 		
-		assertEquals(new JSONDevice(device).toMap(),(Map)map.put("getCurrentDevice",null));
+		assertEquals(new JSONDevice(device).toMap(),(Map<?, ?>)map.put("getCurrentDevice",null));
 		
 		verify(delegate).getCurrentDevice();
 	}

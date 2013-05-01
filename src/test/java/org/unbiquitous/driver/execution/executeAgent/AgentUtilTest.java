@@ -27,7 +27,7 @@ import org.mockito.ArgumentCaptor;
 import org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
-import org.unbiquitous.uos.core.application.UOSMessageContext;
+import org.unbiquitous.uos.core.applicationManager.UOSMessageContext;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;

@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.unbiquitous.driver.execution.ExecutionDriver;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
-import org.unbiquitous.uos.core.application.UOSMessageContext;
+import org.unbiquitous.uos.core.applicationManager.UOSMessageContext;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 

@@ -19,7 +19,7 @@ import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
 import org.unbiquitous.driver.execution.remoteExecution.StringInputStream;
 import org.unbiquitous.driver.execution.remoteExecution.UosLuaCall;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
-import org.unbiquitous.uos.core.application.UOSMessageContext;
+import org.unbiquitous.uos.core.applicationManager.UOSMessageContext;
 import org.unbiquitous.uos.core.driverManager.UosDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpService.ParameterType;
@@ -201,6 +201,7 @@ public class ExecutionDriver implements UosDriver {
 					((Agent)o).run(gateway);
 				}else{
 					Method run = o.getClass().getMethod("run", Map.class);
+					//FIXME: must be a GatewayMap
 					run.invoke(o, new HashMap());
 				}
 			} catch (Exception e) {
