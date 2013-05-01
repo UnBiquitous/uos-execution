@@ -26,6 +26,7 @@ import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceResponse;
 public class GatewayMap implements Map{
 
 	final Gateway delegate;
+	static HashMap globals = new HashMap();
 
 	public GatewayMap(Gateway delegate) {
 		this.delegate = delegate;
@@ -35,7 +36,10 @@ public class GatewayMap implements Map{
 	public Object put(Object key, Object value) {
 		try {
 			String method = (String) key;
-			Map parameters = (Map) value;
+			Map parameters = null;
+			if (value instanceof Map){
+				parameters = (Map) value;
+			}
 			if (method == "callService"){
 				return callService(parameters);
 			}else if (method == "registerForEvent"){
@@ -44,6 +48,8 @@ public class GatewayMap implements Map{
 				return new JSONDevice(delegate.getCurrentDevice()).toMap();
 			}else if (method == "listDrivers") {
 				return listDrivers(parameters);
+			}else{
+				this.globals.put(key,value);
 			}
 			
 		} catch (Exception e) {
@@ -112,8 +118,9 @@ public class GatewayMap implements Map{
 			} catch (JSONException e) {
 				throw new RuntimeException(e);
 			}
+		}else{
+			return this.globals.get(key);
 		}
-		return null;
 	}
 	
 	public int size() {return 0;}

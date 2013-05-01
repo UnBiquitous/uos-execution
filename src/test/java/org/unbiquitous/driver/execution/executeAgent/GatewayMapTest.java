@@ -35,9 +35,11 @@ public class GatewayMapTest {
 	private ServiceCall call;
 	private ServiceResponse response;
 
+	@SuppressWarnings("rawtypes")
 	@Before public void setUp(){
 		delegate = mock(Gateway.class);
 		map = new GatewayMap(delegate);
+		GatewayMap.globals = new HashMap();
 		device = new UpDevice("d1").addNetworkInterface("addr", "t");
 		call = new ServiceCall("dr1","s1","i1").addParameter("p", "v");
 		response = new ServiceResponse().addParameter("teste", "t");
@@ -161,6 +163,12 @@ public class GatewayMapTest {
 		assertEquals(expected,map.put("listDrivers",callParams));
 		
 		verify(delegate).listDrivers(driverName);
+	}
+	
+	@Test public void unkownPropertiesActAsGlobals() throws Exception{
+		map.put("myNumber",1);
+		assertThat(map.get("myNumber")).isEqualTo(1);
+		assertThat(new GatewayMap(null).get("myNumber")).isEqualTo(1);
 	}
 }
 
