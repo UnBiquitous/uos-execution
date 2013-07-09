@@ -77,6 +77,10 @@
 			<version>0.3.0</version>
 			<scope>test</scope>
 		</dependency>
-		
+		<dependency>
+			<groupId>org.unbiquitous</groupId>
+			<artifactId>uos-socket-plugin</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 </project>
