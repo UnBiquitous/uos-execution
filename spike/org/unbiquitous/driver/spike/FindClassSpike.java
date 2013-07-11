@@ -8,23 +8,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.mockito.Mockito;
 import org.unbiquitous.driver.execution.ExecutionDriver;
 import org.unbiquitous.driver.execution.executeAgent.Agent;
-import org.unbiquitous.uos.core.Logger;
-import org.unbiquitous.uos.core.UOSApplicationContext;
+import org.unbiquitous.uos.core.UOS;
+import org.unbiquitous.uos.core.UOSLogging;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 
 
 public class FindClassSpike {
-	private static final Logger logger = Logger.getLogger(FindClassSpike.class);
+	private static final Logger logger = UOSLogging.getLogger();
 	
 	public static void main(String[] args) throws Exception {
 
@@ -33,8 +34,8 @@ public class FindClassSpike {
 		System.out.println(hello.getClass() + "\t>>\t" + findClass(hello));
 		System.out.println(new ExecutionDriver().getClass() + "\t>>\t"
 				+ findClass(new ExecutionDriver()));
-		System.out.println(new UOSApplicationContext().getClass() + "\t>>\t"
-				+ findClass(new UOSApplicationContext()));
+		System.out.println(new UOS().getClass() + "\t>>\t"
+				+ findClass(new UOS()));
 		System.out.println(new Mockito().getClass() + "\t>>\t"
 				+ findClass(new Mockito()));
 		System.out.println(Class.class.getResourceAsStream(new Mockito()
@@ -113,17 +114,17 @@ public class FindClassSpike {
 		
 		try {
 			ServiceResponse r = g.callService(to, move);
-			logger.debug("Opening agent stream.");
+			logger.fine("Opening agent stream.");
 			ObjectOutputStream writer_agent = new ObjectOutputStream(r.getMessageContext().getDataOutputStream(0));
-			logger.debug("Sending agent.");
+			logger.fine("Sending agent.");
 			writer_agent.writeObject(a);
 			writer_agent.close();
-			logger.debug("Opening class stream.");
+			logger.fine("Opening class stream.");
 			OutputStream writer_class = r.getMessageContext().getDataOutputStream(1);
 			final String classFile = findClass(a);
-			logger.debug("Sending class "+classFile);
+			logger.fine("Sending class "+classFile);
 			InputStream clazz= new FileInputStream(classFile);
-			logger.debug("Uffa.");
+			logger.fine("Uffa.");
 			int b;
 			while((b = clazz.read())!= -1)
 				writer_class.write(b);

@@ -3,24 +3,25 @@ package org.unbiquitous.driver.spike;
 import java.util.List;
 import java.util.ListResourceBundle;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 
 import org.unbiquitous.driver.execution.executeAgent.AgentUtil;
-import org.unbiquitous.uos.core.Logger;
-import org.unbiquitous.uos.core.UOSApplicationContext;
+import org.unbiquitous.uos.core.UOS;
+import org.unbiquitous.uos.core.UOSLogging;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.driverManager.DriverData;
 
 
 public class MoveSpike {
 
-	private static final Logger logger = Logger.getLogger(MoveSpike.class);
+	private static final Logger logger = UOSLogging.getLogger();
 
 	public static void main(String[] args) throws Exception{
 		move();
 	}
 	
 	public static void move() throws Exception{
-		UOSApplicationContext u = new UOSApplicationContext();
+		UOS u = new UOS();
 		ResourceBundle prop = new ListResourceBundle() {
 			protected Object[][] getContents() {
 				return new Object[][] {
@@ -42,19 +43,19 @@ public class MoveSpike {
 		HelloAgent hello = new HelloAgent();
 		Gateway g = u.getGateway();
 		List<DriverData> drivers = null;
-		logger.debug("Searching Drivers.");
+		logger.fine("Searching Drivers.");
 		do{
 			drivers = g.listDrivers("uos.ExecutionDriver");
 		}while(drivers == null || drivers.isEmpty());
 		hello.init(u.getGateway());
 //		hello.moveTo(new UpDevice("MacAgentTarget"));
-		logger.debug("Start Moving to "+drivers.get(0).getDevice());
+		logger.fine("Start Moving to "+drivers.get(0).getDevice());
 		AgentUtil.getInstance().move(hello, drivers.get(0).getDevice(), g);
 //		moveTo(hello,drivers.get(0).getDevice(),g);
 	}
 	
 	public static void receive() throws Exception{
-		UOSApplicationContext u = new UOSApplicationContext();
+		UOS u = new UOS();
 		ResourceBundle prop = new ListResourceBundle() {
 			protected Object[][] getContents() {
 				return new Object[][] {

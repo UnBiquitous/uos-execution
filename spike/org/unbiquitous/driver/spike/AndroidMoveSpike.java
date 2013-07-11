@@ -8,7 +8,7 @@ import java.util.ResourceBundle;
 
 import org.unbiquitous.driver.execution.executeAgent.AgentUtil;
 import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
-import org.unbiquitous.uos.core.UOSApplicationContext;
+import org.unbiquitous.uos.core.UOS;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
 import org.unbiquitous.uos.network.socket.connectionManager.EthernetTCPConnectionManager;
@@ -17,7 +17,7 @@ import org.unbiquitous.uos.network.socket.radar.EthernetPingRadar;
 public class AndroidMoveSpike {
 
 	public static void main(String[] args) throws Exception{
-		UOSApplicationContext u = new UOSApplicationContext();
+		UOS u = new UOS();
 		ResourceBundle prop = new ListResourceBundle() {
 			protected Object[][] getContents() {
 				return new Object[][] {

@@ -7,19 +7,22 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Modifier;
+import java.util.logging.Logger;
 
-import org.unbiquitous.uos.core.Logger;
+import org.unbiquitous.uos.core.UOSLogging;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 
 
 //TODO: Doc
 public class AgentUtil {
 
+	private static final Logger logger = UOSLogging.getLogger();
+	
 	private ClassToolbox toolbox = new ClassToolbox();
 	private static AgentUtil instance;
 	
@@ -43,7 +46,7 @@ public class AgentUtil {
 		
 		ServiceResponse r = callExecute(target, gateway);
 		sendAgent(agent, r);
-		Logger.getLogger(AgentUtil.class).debug("Target platform is: "+target.getProperty("platform"));
+		logger.fine("Target platform is: "+target.getProperty("platform"));
 		if ("Dalvik".equalsIgnoreCase((String)target.getProperty("platform"))){
 			sendDalvik(agent, r);
 		}else{
