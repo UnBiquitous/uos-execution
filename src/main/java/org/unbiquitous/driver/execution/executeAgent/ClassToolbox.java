@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -66,6 +67,33 @@ public class ClassToolbox {
 			return tempDir;
 		}
 	}; 
+	
+	static {
+		try {
+			final Class dexClass = Class.forName("dalvik.system.DexClassLoader");
+			System.out.println("Using DEX");
+			platform = new Platform() {
+				protected ClassLoader createClassLoader(File input)
+						throws Exception {
+					File folder = input.getParentFile();
+					ClassLoader parent = ClassLoader.getSystemClassLoader().getParent();
+					Constructor constructor = dexClass.getConstructor(String.class, String.class, String.class, ClassLoader.class);
+					return (ClassLoader) constructor.newInstance(input.getPath(),folder.getPath(),null, parent);
+				}
+
+				protected File createTempDir() throws Exception {
+					File tempDir = File.createTempFile("uExeTmp", ""+System.nanoTime());
+					tempDir.delete(); // Delete temp file
+					tempDir.mkdir();  // and transform it to a directory
+					return tempDir;
+				}
+				
+			};
+		} catch (ClassNotFoundException e) {
+			// If it's not found keep the way it is.
+			System.out.println("Not Using DEX");
+		}
+	}
 	
 	public abstract static class Platform{
 		protected abstract ClassLoader createClassLoader(File input) throws Exception;
