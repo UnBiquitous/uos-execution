@@ -98,6 +98,21 @@ public class AgentUtilTest {
 		assertEquals(zipEntries(jar), zipEntries(jarSpy));
 	}
 	
+	@Test public void canMoveOnlyTheAgent() throws Exception{
+		MyAgent agent = new MyAgent();
+		ByteArrayOutputStream agentSpy = new ByteArrayOutputStream();
+		File jarSpy = File.createTempFile("uOSAUtilTmpJar", ".jar");
+		
+		Gateway gateway = mockGateway(new BufferedOutputStream(agentSpy),
+						new BufferedOutputStream(new FileOutputStream(jarSpy)));
+		
+		UpDevice target = new UpDevice("target");
+		agentUtil.move(agent,target,gateway,false);
+		
+		assertArrayEquals(serialize(agent), agentSpy.toByteArray());
+		assertEquals(0,jarSpy.length());
+	}
+	
 	@Test public void movingSendsSpecificPackage() throws Exception{
 		Agent agent = new DummyAgent();
 		File jarSpy = File.createTempFile("uOSAUtilTmpJar", ".jar");

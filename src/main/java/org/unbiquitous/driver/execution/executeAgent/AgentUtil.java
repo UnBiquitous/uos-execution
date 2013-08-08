@@ -18,7 +18,26 @@ import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 
 
-//TODO: Doc
+/**
+ * Class used to migrate agents between devices:
+ * The various versions of AgentUtil.move() are responsible for doing this job.
+ * 
+ * {@link #move(Serializable, UpDevice, Gateway)} : 
+ * 		Ensures that the agent will be moved to the target device.
+ * 		The target package will be automatically created.
+ * 
+ * {@link #move(Serializable, File, UpDevice, Gateway)} :
+ * 		Sends the agent to the target device along with the informed package.
+ * 
+ * {@link #move(Serializable, UpDevice, Gateway, boolean)} :
+ * 		Works just like the move, but you can specify if no package is 
+ * 		needed to me sent (usually when the same classpath is shared among
+ * 		devices).
+ * 
+ * @author Fabricio Buzeto
+ *
+ */
+
 public class AgentUtil {
 
 	private static final Logger logger = UOSLogging.getLogger();
@@ -41,11 +60,21 @@ public class AgentUtil {
 	}
 	
 	public void move(Serializable agent, UpDevice target, Gateway gateway) throws Exception {
+		move(agent, target, gateway, true);
+	}
+	
+	public void move(Serializable agent, UpDevice target, Gateway gateway, boolean sendPackage) throws Exception {
 		if (agent.getClass().getModifiers() != Modifier.PUBLIC)
 			throw new RuntimeException("Agent class must be public");
 		
 		ServiceResponse r = callExecute(target, gateway);
 		sendAgent(agent, r);
+		if (sendPackage){
+			sendPackage(agent, target, r);
+		}
+	}
+	private void sendPackage(Serializable agent, UpDevice target,
+			ServiceResponse r) throws Exception {
 		logger.fine("Target platform is: "+target.getProperty("platform"));
 		if ("Dalvik".equalsIgnoreCase((String)target.getProperty("platform"))){
 			sendDalvik(agent, r);
