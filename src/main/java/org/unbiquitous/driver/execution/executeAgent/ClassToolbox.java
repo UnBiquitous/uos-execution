@@ -71,7 +71,6 @@ public class ClassToolbox {
 	static {
 		try {
 			final Class dexClass = Class.forName("dalvik.system.DexClassLoader");
-			System.out.println("Using DEX");
 			platform = new Platform() {
 				protected ClassLoader createClassLoader(File input)
 						throws Exception {
@@ -91,7 +90,6 @@ public class ClassToolbox {
 			};
 		} catch (ClassNotFoundException e) {
 			// If it's not found keep the way it is.
-			System.out.println("Not Using DEX");
 		}
 	}
 	

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.unbiquitous.driver</groupId>
 	<artifactId>uos-execution</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0-ALPHA</version>
 	<description>Driver which allows a Device to host foreign code.</description>
 
 	<build>
@@ -30,9 +30,8 @@
 		<dependency>
 			<groupId>org.unbiquitous</groupId>
 			<artifactId>uos-core</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>3.0.0</version>
 		</dependency>
-		
 		<dependency>
 			<groupId>luaj</groupId>
 			<artifactId>luaj-jse</artifactId>
@@ -40,13 +39,14 @@
 			<scope>system</scope>
 			<systemPath>${basedir}/lib/luaj-jse-2.0.2.jar</systemPath>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.apache.bcel</groupId>
 			<artifactId>bcel</artifactId>
 			<version>5.2</version>
 		</dependency>
 
+		
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -76,11 +76,6 @@
 			<artifactId>compilation-toolbox</artifactId>
 			<version>0.3.0</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.unbiquitous</groupId>
-			<artifactId>uos-socket-plugin</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
