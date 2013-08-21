@@ -44,19 +44,35 @@ public class ClassToolbox {
 		package_cache.put(clazz, jar);
 	}
 	
-	protected InputStream findClass(Class<?> clazz) throws IOException {
-		return finder.findClass(clazz);
+	protected InputStream findClass(Class<?> clazz) throws IOException{
+		return findClass(clazz, null);
+	}
+	
+	
+	protected InputStream findClass(Class<?> clazz, List<String> extraBlacklist)
+				throws IOException {
+		return finder.findClass(clazz, extraBlacklist);
 	}
 
 	public File packageJarFor(Class<?> clazz) throws Exception {
+		return packageJarFor(clazz, null);
+	}
+	
+	public File packageJarFor(Class<?> clazz, List<String> extraBlacklist)
+			throws Exception {
 		if (package_cache.containsKey(clazz)) return package_cache.get(clazz);
-		return new JarPackager(this).packageJar(clazz, platform.createTempDir());
+		return new JarPackager(this)
+					.packageJar(clazz, platform.createTempDir(), extraBlacklist);
 	}
 
 	public File packageDalvikFor(Class<?> clazz) throws Exception {
+		return packageDalvikFor(clazz, null);
+	}
+	
+	public File packageDalvikFor(Class<?> clazz, List<String> extraBlacklist) throws Exception {
 		if (package_cache.containsKey(clazz)) return package_cache.get(clazz);
 		File dir = platform.createTempDir();
-		File jar = new JarPackager(this).packageJar(clazz, dir);
+		File jar = new JarPackager(this).packageJar(clazz, dir,extraBlacklist);
 		String ANDROID_HOME = System.getenv("ANDROID_HOME");
 		return convertToDalvik(dir, jar, ANDROID_HOME);
 	}

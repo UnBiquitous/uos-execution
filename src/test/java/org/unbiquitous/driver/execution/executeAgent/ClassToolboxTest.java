@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipOutputStream;
@@ -25,6 +26,8 @@ import org.luaj.vm2.Lua;
 import org.mockito.Mockito;
 import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
+import org.unbiquitous.uos.core.messageEngine.messages.Notify;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
 
 
 public class ClassToolboxTest {
@@ -177,6 +180,22 @@ public class ClassToolboxTest {
 		assertThat(zipEntries(jar)).containsOnly(
 				"org/unbiquitous/driver/execution/executeAgent/dummy/DummyAgent.class",
 				"org/unbiquitous/driver/execution/executeAgent/Agent.class");
+	}
+	
+	@Test public void packageJarConsideringATemporaryBlackList() throws Exception{
+		File jar = box.packageJarFor(
+				org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent.class,
+				new ArrayList<String>(){{
+					add(ServiceCall.class.getName());
+					add(Notify.class.getName());
+					add(Gateway.class.getName());
+				}}
+				);
+		
+		assertThat(zipEntries(jar)).doesNotContain(
+				ServiceCall.class.getName().replace(".", "/")+".class",
+				Notify.class.getName().replace(".", "/")+".class",
+				Gateway.class.getName().replace(".", "/")+".class");
 	}
 	
 	@SuppressWarnings("serial")

@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -33,8 +34,8 @@ class JarPackager {
 		this.toolbox = toolbox;
 	}
 
-	File packageJar(Class<?> clazz, File path) throws Exception{
-		packageClass(clazz, path);
+	File packageJar(Class<?> clazz, File path, List<String> extraBlacklist) throws Exception{
+		packageClass(clazz, path, extraBlacklist);
 		
 		File jar =  File.createTempFile("uExe", System.nanoTime()+".jar");
 		final ZipOutputStream zos = new ZipOutputStream( new FileOutputStream( jar ) );
@@ -43,66 +44,71 @@ class JarPackager {
 		return jar;
 	}
 	
-	protected void packageClass(Class<?> clazz, File path) throws IOException,
+	protected void packageClass(Class<?> clazz, File path, 
+								List<String> extraBlacklist) throws IOException,
 			FileNotFoundException, ClassNotFoundException {
 		if (!processedClasses.contains(clazz)) {
-			final InputStream bytecode = toolbox.findClass(clazz);
+			final InputStream bytecode = toolbox.findClass(clazz, extraBlacklist);
 			if (bytecode == null) return; //cut not found classes
 			processedClasses.add(clazz);
 			toolbox.writeClassFileOnPath(clazz.getName(), bytecode, path);
 
-			packageFields(clazz, path);
-			packageSuperclass(clazz, path);
-			packageInnerClasses(clazz, path);
-			packageInterfaces(clazz, path);
-			packageMethods(clazz, path);
+			packageFields(clazz, path, extraBlacklist);
+			packageSuperclass(clazz, path, extraBlacklist);
+			packageInnerClasses(clazz, path, extraBlacklist);
+			packageInterfaces(clazz, path, extraBlacklist);
+			packageMethods(clazz, path, extraBlacklist);
 		}
 	}
 
-	private void packageMethods(Class<?> clazz, File path)
+	private void packageMethods(Class<?> clazz, File path, 
+								List<String> extraBlacklist)
 			throws ClassNotFoundException, IOException, FileNotFoundException {
 		final JavaClass rClazz = Repository.lookupClass(clazz);
 		for (Method method : rClazz.getMethods()) {
-			packageMethodArguments(path, method);
-			packageMethodLocalVariables(path, method);
-			packageMethodExceptions(path, method);
-			packageMethodReturnType(path, method);
+			packageMethodArguments(path, method, extraBlacklist);
+			packageMethodLocalVariables(path, method, extraBlacklist);
+			packageMethodExceptions(path, method, extraBlacklist);
+			packageMethodReturnType(path, method, extraBlacklist);
 		}
 	}
 
-	private void packageMethodReturnType(File path, Method method)
+	private void packageMethodReturnType(File path, Method method, 
+											List<String> extraBlacklist)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
-		packageBCELType(method.getReturnType(), path);
+		packageBCELType(method.getReturnType(), path, extraBlacklist);
 	}
 
-	private void packageMethodArguments(File path, Method method)
+	private void packageMethodArguments(File path, Method method, 
+										List<String> extraBlacklist)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
 		for (Type t : method.getArgumentTypes()) {
-			packageBCELType(t, path);
+			packageBCELType(t, path, extraBlacklist);
 		}
 	}
 	
-	private void packageBCELType(Type t, File path)
+	private void packageBCELType(Type t, File path, List<String> extraBlacklist)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
 		if (!(t instanceof BasicType)) {
 			Type type = t;
 			while (type instanceof ArrayType)
 				type = ((ArrayType)type).getElementType();
 			if (!(type instanceof BasicType)) 
-				packageClass(Class.forName(type.toString()), path);
+				packageClass(Class.forName(type.toString()), path, extraBlacklist);
 		}
 	}
 	
-	private void packageMethodExceptions(File path, Method method)
+	private void packageMethodExceptions(	File path, Method method, 
+											List<String> extraBlacklist)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
 		if (method.getExceptionTable() != null){
 			for(String e:method.getExceptionTable().getExceptionNames()){
-				packageClass(Class.forName(e), path);
+				packageClass(Class.forName(e), path, extraBlacklist);
 			}
 		}
 	}
 
-	private void packageMethodLocalVariables(File path, Method method)
+	private void packageMethodLocalVariables(File path, Method method, List<String> extraBlacklist)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
 		if (method.getLocalVariableTable() != null){
 			for (LocalVariable v : method.getLocalVariableTable()
@@ -113,37 +119,37 @@ class JarPackager {
 						.replace('/', '.'); // change dash for dot
 				if (name.length() > 2 ){ // get rid of primitive types
 					name = name.substring(1,name.length()-1); // remove L
-					packageClass(Class.forName(name), path);
+					packageClass(Class.forName(name), path, extraBlacklist);
 				}
 			}
 		}
 	}
 
-	private void packageInterfaces(Class<?> clazz, File path)
+	private void packageInterfaces(Class<?> clazz, File path, List<String> extraBlacklist)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
 		for (Class<?> i : clazz.getInterfaces()) {
-			packageClass(i, path);
+			packageClass(i, path, extraBlacklist);
 		}
 	}
 
-	private void packageInnerClasses(Class<?> clazz, File path)
+	private void packageInnerClasses(Class<?> clazz, File path, List<String> extraBlacklist)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
 		for (Class<?> s : clazz.getDeclaredClasses()) {
-			packageClass(s, path);
+			packageClass(s, path, extraBlacklist);
 		}
 	}
 
-	private void packageSuperclass(Class<?> clazz, File path)
+	private void packageSuperclass(Class<?> clazz, File path, List<String> extraBlacklist)
 			throws IOException, FileNotFoundException, ClassNotFoundException {
 		if (clazz.getSuperclass() != null) 
-			packageClass(clazz.getSuperclass(), path);
+			packageClass(clazz.getSuperclass(), path, extraBlacklist);
 	}
 
-	private void packageFields(Class<?> clazz, File path) throws IOException,
+	private void packageFields(Class<?> clazz, File path, List<String> extraBlacklist) throws IOException,
 			FileNotFoundException, ClassNotFoundException {
 		for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
 			Class<?> type = findRootTypeFromArrays(f); 
-			packageClass(type, path);
+			packageClass(type, path, extraBlacklist);
 		}
 	}
 

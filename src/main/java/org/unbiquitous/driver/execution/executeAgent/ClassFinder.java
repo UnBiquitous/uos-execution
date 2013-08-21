@@ -111,7 +111,12 @@ class ClassFinder {
 		zis.close();
 	}
 	
-	protected InputStream findClass(Class<?> clazz) throws IOException {
+	protected InputStream findClass(Class<?> clazz, List<String> extraBlacklist) 
+			throws IOException {
+		
+		if (extraBlacklist != null && extraBlacklist.contains(clazz.getName())){
+			return null;
+		}
 		
 		if(blacklistedClasses.contains(clazz.getName())){
 			return null;
