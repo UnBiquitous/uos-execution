@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.unbiquitous.driver.execution.ExecutionDriver;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
-import org.unbiquitous.uos.core.applicationManager.UOSMessageContext;
+import org.unbiquitous.uos.core.applicationManager.CallContext;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 
@@ -238,7 +238,7 @@ public class ExecutionDriverTest_executeAgent {
 	}
 	
 	@Test public void dontBreakWithoutAnAgent() throws Exception{
-		driver.executeAgent(null,response,new UOSMessageContext(){
+		driver.executeAgent(null,response,new CallContext(){
 			public DataInputStream getDataInputStream() {
 				return null;
 			}
@@ -249,7 +249,7 @@ public class ExecutionDriverTest_executeAgent {
 	}
 	
 	@Test public void dontBreakWhenSomethingBadHappens() throws Exception{
-		driver.executeAgent(null,response,new UOSMessageContext(){
+		driver.executeAgent(null,response,new CallContext(){
 			public DataInputStream getDataInputStream() {
 				throw new RuntimeException();
 			}
@@ -366,7 +366,7 @@ public class ExecutionDriverTest_executeAgent {
 			bytecode = null;
 		}
 		driver.executeAgent(call,response,
-				new UOSMessageContext(){
+				new CallContext(){
 					public DataInputStream getDataInputStream() {	
 						return agentStream;	
 					}

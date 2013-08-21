@@ -310,4 +310,17 @@ public class ClassToolboxTest {
 	public void conversionToDalvikFailsSoftlyWhenTheConversionDontGoAsExpected() throws Exception{
 		box.convertToDalvik(tempDir, new File("doesnotexsist"), System.getenv("ANDROID_HOME"));
 	}
+	
+	@Test public void listClassesOnClassPath(){
+		assertThat(box.listKnownClasses()).contains(DummyAgent.class.getName());
+		assertThat(box.listKnownClasses()).contains(MyAgent.class.getName());
+		assertThat(box.listKnownClasses()).contains(Mockito.class.getName());
+		assertThat(box.listKnownClasses()).doesNotContain(Integer.class.getName());
+		box.add2BlackList("luaj-jse-2.0.2.jar");
+		assertThat(box.listKnownClasses()).contains(Lua.class.getName());
+		box.add2BlackList("uos-core");
+		box.add2BlackList("/uos_core/target/classes");
+		assertThat(box.listKnownClasses()).contains(Gateway.class.getName());
+		assertThat(box.listKnownClasses()).contains(MyJarAgent.class.getName());
+	}
 }

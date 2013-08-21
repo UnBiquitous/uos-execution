@@ -19,7 +19,7 @@ import org.unbiquitous.driver.execution.executeAgent.GatewayMap;
 import org.unbiquitous.driver.execution.remoteExecution.StringInputStream;
 import org.unbiquitous.driver.execution.remoteExecution.UosLuaCall;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
-import org.unbiquitous.uos.core.applicationManager.UOSMessageContext;
+import org.unbiquitous.uos.core.applicationManager.CallContext;
 import org.unbiquitous.uos.core.driverManager.UosDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpService.ParameterType;
@@ -102,7 +102,7 @@ public class ExecutionDriver implements UosDriver {
 	public List<UpDriver> getParent() {	return null;	}
 	
 	public void remoteExecution(ServiceCall call, ServiceResponse response,
-			UOSMessageContext object) {
+			CallContext object) {
 		try {
 			script_id++;
 			
@@ -131,7 +131,7 @@ public class ExecutionDriver implements UosDriver {
 	}
 
 	public void executeAgent(ServiceCall call, ServiceResponse response,
-			UOSMessageContext ctx) {
+			CallContext ctx) {
 		try {
 			if(ctx.getDataInputStream() == null){
 				response.setError("No Data Stream, containing agent, was found.");

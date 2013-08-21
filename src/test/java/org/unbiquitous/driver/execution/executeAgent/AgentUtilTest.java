@@ -27,11 +27,11 @@ import org.mockito.ArgumentCaptor;
 import org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
-import org.unbiquitous.uos.core.applicationManager.UOSMessageContext;
+import org.unbiquitous.uos.core.applicationManager.CallContext;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 
 
 public class AgentUtilTest {
@@ -186,8 +186,8 @@ public class AgentUtilTest {
 		when(gateway.callService(any(UpDevice.class), any(ServiceCall.class)))
 		.thenReturn(new ServiceResponse(){
 			@Override
-			public UOSMessageContext getMessageContext() {
-				return new UOSMessageContext(){
+			public CallContext getMessageContext() {
+				return new CallContext(){
 					public DataOutputStream getDataOutputStream() {	
 						return new DataOutputStream(spy);	
 					}

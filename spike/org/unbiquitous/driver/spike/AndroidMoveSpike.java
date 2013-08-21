@@ -11,8 +11,6 @@ import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
 import org.unbiquitous.uos.core.UOS;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
-import org.unbiquitous.uos.network.socket.connectionManager.EthernetTCPConnectionManager;
-import org.unbiquitous.uos.network.socket.radar.EthernetPingRadar;
 
 public class AndroidMoveSpike {
 
@@ -23,10 +21,10 @@ public class AndroidMoveSpike {
 				return new Object[][] {
 					{"ubiquitos.message.response.timeout", "100"}, //Optional
 					{"ubiquitos.message.response.retry", "30"},//Optional
-					{"ubiquitos.connectionManager",
-						EthernetTCPConnectionManager.class.getName()},
-					{"ubiquitos.radar",
-						EthernetPingRadar.class.getName()},
+//					{"ubiquitos.connectionManager",
+//						TCPConnectionManager.class.getName()},
+//					{"ubiquitos.radar",
+//						PingRadar.class.getName()},
 					{"ubiquitos.eth.tcp.port", "14984"}, 
 					{"ubiquitos.eth.tcp.passivePortRange", "14985-15000"}, 
 					{"ubiquitos.eth.udp.port", "15001"}, 
