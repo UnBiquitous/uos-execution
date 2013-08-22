@@ -1,12 +1,12 @@
 package org.unbiquitous.driver.execution.executeAgent.dummy;
 
 import org.unbiquitous.driver.execution.executeAgent.Agent;
-import org.unbiquitous.driver.execution.executeAgent.ExecutionDriverTest_executeAgent;
+import org.unbiquitous.driver.execution.executeAgent.ExecuteAgentServiceTest;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 
 
 /**
- *	This class is just a Dummy used at the {@link ExecutionDriverTest_executeAgent}
+ *	This class is just a Dummy used at the {@link ExecuteAgentServiceTest}
  *  
  * @author Fabricio Nogueira Buzeto
  */

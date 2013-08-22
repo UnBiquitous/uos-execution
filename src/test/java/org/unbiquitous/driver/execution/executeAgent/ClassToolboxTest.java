@@ -182,6 +182,7 @@ public class ClassToolboxTest {
 				"org/unbiquitous/driver/execution/executeAgent/Agent.class");
 	}
 	
+	@SuppressWarnings("serial")
 	@Test public void packageJarConsideringATemporaryBlackList() throws Exception{
 		File jar = box.packageJarFor(
 				org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent.class,

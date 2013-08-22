@@ -9,7 +9,7 @@ import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 
 
-public class ExecutionDriverTest_remoteExecution {
+public class RemoteExecutionTest {
 	
 private ExecutionDriver driver;
 	

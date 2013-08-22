@@ -37,7 +37,7 @@ import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
 
 
-public class ExecutionDriverTest_executeAgent {
+public class ExecuteAgentServiceTest {
 
 	@Rule
     public TemporaryFolder folder= new TemporaryFolder();
@@ -82,7 +82,7 @@ public class ExecutionDriverTest_executeAgent {
 		
 		assertNull("No error should be found.",response.getError());
 		assertEquals((Integer)(before),MyAgent.AgentSpy.count);
-		assertEventuallyTrue("Must increment the SpyCount eventually", 
+		assertEventually("Must increment the SpyCount eventually", 
 				a.sleepTime + 1000, new EventuallyAssert(){
 				public boolean assertion(){
 					return (Integer)(before+1) == MyAgent.AgentSpy.count;
@@ -102,7 +102,7 @@ public class ExecutionDriverTest_executeAgent {
 		
 		assertNull("No error should be found.",response.getError());
 		assertEquals((Integer)(before),MyAnonymousAgent.Spy.count);
-		assertEventuallyTrue("Must increment the SpyCount eventually", 
+		assertEventually("Must increment the SpyCount eventually", 
 				a.sleepTime + 1000, new EventuallyAssert(){
 				public boolean assertion(){
 					return (Integer)(before+1) == MyAnonymousAgent.Spy.count;
@@ -149,7 +149,7 @@ public class ExecutionDriverTest_executeAgent {
 		
 		assertNull("No error should be found.",response.getError());
 		
-		assertEventuallyTrue("Must increment the SpyCount eventually",1000, 
+		assertEventually("Must increment the SpyCount eventually",1000, 
 				new EventuallyAssert(){
 					public boolean assertion(){
 						return (Integer)(before+17) == MyAgent.AgentSpy.count;
@@ -185,7 +185,7 @@ public class ExecutionDriverTest_executeAgent {
 		
 		assertNull("No error should be found.",response.getError());
 		
-		assertEventuallyTrue("Must increment the SpyCount eventually",1000, 
+		assertEventually("Must increment the SpyCount eventually",1000, 
 				new EventuallyAssert(){
 					public boolean assertion(){
 						return (Integer)(before+21) == MyAgent.AgentSpy.count;
@@ -268,7 +268,7 @@ public class ExecutionDriverTest_executeAgent {
 		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
-		assertEventuallyTrue("The gateway mus be the same as the one informed", 
+		assertEventually("The gateway mus be the same as the one informed", 
 				1000, new EventuallyAssert(){
 				public boolean assertion(){
 					return MyAgent.AgentSpy.lastAgent != null && g == MyAgent.AgentSpy.lastAgent.gateway;
@@ -287,7 +287,7 @@ public class ExecutionDriverTest_executeAgent {
 		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
-		assertEventuallyTrue("The gateway mus be the same as the one informed", 
+		assertEventually("The gateway mus be the same as the one informed", 
 				1000, new EventuallyAssert(){
 				public boolean assertion(){
 					return MyAnonymousAgent.Spy.lastAgent != null && 
@@ -308,7 +308,7 @@ public class ExecutionDriverTest_executeAgent {
 		boolean assertion();
 	}
 	
-	private void assertEventuallyTrue(String msg, long wait, EventuallyAssert assertion) throws InterruptedException{
+	private void assertEventually(String msg, long wait, EventuallyAssert assertion) throws InterruptedException{
 		long time = 0;
 		while (time <= wait && !assertion.assertion()){
 			Thread.sleep(10);
