@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.logging.Logger;
 
+import org.unbiquitous.json.JSONArray;
 import org.unbiquitous.uos.core.UOSLogging;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
@@ -67,28 +69,37 @@ public class AgentUtil {
 		if (agent.getClass().getModifiers() != Modifier.PUBLIC)
 			throw new RuntimeException("Agent class must be public");
 		
+		ServiceCall listKnownClasses = new ServiceCall( "uos.ExecutionDriver","listKnownClasses");
+		ServiceResponse rl = gateway.callService(target, listKnownClasses);
+		List<String> knownClasses ;
+		if(rl.getResponseData("classes") instanceof JSONArray){
+			knownClasses = ((JSONArray) rl.getResponseData("classes")).toArray();
+		}else{
+			knownClasses = (List<String>) rl.getResponseData("classes");
+		}
+		
 		ServiceResponse r = callExecute(target, gateway);
 		sendAgent(agent, r);
 		if (sendPackage){
-			sendPackage(agent, target, r);
+			sendPackage(agent, target, r, knownClasses);
 		}
 	}
 	private void sendPackage(Serializable agent, UpDevice target,
-			ServiceResponse r) throws Exception {
+			ServiceResponse r, List<String> knownClasses) throws Exception {
 		logger.fine("Target platform is: "+target.getProperty("platform"));
 		if ("Dalvik".equalsIgnoreCase((String)target.getProperty("platform"))){
-			sendDalvik(agent, r);
+			sendDalvik(agent, r, knownClasses);
 		}else{
-			sendJar(agent, r);
+			sendJar(agent, r, knownClasses);
 		}
 	}
 
-	private void sendJar(Serializable agent, ServiceResponse r) throws Exception{
-		sendPackage(r, toolbox.packageJarFor(agent.getClass()));
+	private void sendJar(Serializable agent, ServiceResponse r, List<String> knownClasses) throws Exception{
+		sendPackage(r, toolbox.packageJarFor(agent.getClass(), knownClasses));
 	}
 
-	private void sendDalvik(Serializable agent, ServiceResponse r) throws Exception{
-		sendPackage(r, toolbox.packageDalvikFor(agent.getClass()));
+	private void sendDalvik(Serializable agent, ServiceResponse r, List<String> knownClasses) throws Exception{
+		sendPackage(r, toolbox.packageDalvikFor(agent.getClass(), knownClasses));
 	}
 
 	private void sendPackage(ServiceResponse r, File pkg) throws IOException {

@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.zip.ZipOutputStream;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -342,5 +343,10 @@ public class ClassToolboxTest {
 		box.add2BlackList("/uos_core/target/classes");
 		assertThat(box.listKnownClasses()).contains(Gateway.class.getName());
 		assertThat(box.listKnownClasses()).contains(MyJarAgent.class.getName());
+	}
+	
+	@Ignore
+	@Test public void cachesClassloaders(){
+		
 	}
 }

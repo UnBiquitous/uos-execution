@@ -1,9 +1,12 @@
 package org.unbiquitous.driver.execution.executeAgent;
 
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.unbiquitous.driver.execution.executeAgent.CompilationUtil.assertStream;
@@ -18,13 +21,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 import org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent;
+import org.unbiquitous.json.JSONArray;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
 import org.unbiquitous.uos.core.applicationManager.CallContext;
@@ -44,7 +50,7 @@ public class AgentUtilTest {
 	
 	@BeforeClass public static void init(){
 		box = new ClassToolbox();
-		agentUtil = AgentUtil.getInstance();
+		agentUtil = new AgentUtil();
 	}
 	
 	@Test public void movingCallsExecuteAgentOnExecutionDriver() throws Exception{
@@ -56,17 +62,22 @@ public class AgentUtilTest {
 		ArgumentCaptor<UpDevice> deviceCaptor = ArgumentCaptor.forClass(UpDevice.class);
 		ArgumentCaptor<ServiceCall> callCaptor = ArgumentCaptor.forClass(ServiceCall.class);
 		
-		verify(gateway).callService(deviceCaptor.capture(), callCaptor.capture());
+		verify(gateway,times(2)).callService(deviceCaptor.capture(), callCaptor.capture());
 		
 		assertEquals(target, deviceCaptor.getValue());
-		assertEquals("uos.ExecutionDriver", callCaptor.getValue().getDriver());
-		assertEquals("executeAgent", callCaptor.getValue().getService());
+		ServiceCall listKnownClasses = callCaptor.getAllValues().get(0);
+		assertEquals("uos.ExecutionDriver", listKnownClasses.getDriver());
+		assertEquals("listKnownClasses", listKnownClasses.getService());
+		
+		ServiceCall executeAgent = callCaptor.getAllValues().get(1);
+		assertEquals("uos.ExecutionDriver", executeAgent.getDriver());
+		assertEquals("executeAgent", executeAgent.getService());
 		assertEquals("Must have 2 channels (agent and jar)",2, 
-											callCaptor.getValue().getChannels());
+											executeAgent.getChannels());
 		assertEquals("Service is of type stream",
-					ServiceType.STREAM, callCaptor.getValue().getServiceType());
+					ServiceType.STREAM, executeAgent.getServiceType());
 		assertEquals("Default type of move is jar",
-							"true", callCaptor.getValue().getParameter("jar"));
+							"true", executeAgent.getParameter("jar"));
 		
 	}
 
@@ -81,6 +92,32 @@ public class AgentUtilTest {
 		agentUtil.move(agent,target,gateway);
 		
 		assertArrayEquals(serialize(agent), agentSpy.toByteArray());
+	}
+	
+	@Test public void considerRemoteKnownClassesWhenCreatingJar() throws Exception{
+		MyAgent agent = new MyAgent();
+		File jarSpy = File.createTempFile("uOSAUtilTmpJar", ".jar");
+		
+		Gateway gateway = mockGateway(new ByteArrayOutputStream(),
+						new BufferedOutputStream(new FileOutputStream(jarSpy)));
+		
+		ArrayList<String> knownClasses = new ArrayList<String>(){{
+			add(MyAgent.AgentSpy.class.getName());
+		}};
+		
+		ServiceResponse knownClassesResponse = new ServiceResponse();
+		knownClassesResponse.addParameter("classes", new JSONArray(knownClasses));
+		
+		when(gateway.callService((UpDevice) any(), argThat(serviceMatcher("listKnownClasses"))))
+			.thenReturn(knownClassesResponse);
+		
+		UpDevice target = new UpDevice("target");
+		agentUtil.move(agent,target,gateway);
+		
+		File jar = box.packageJarFor(agent.getClass(),knownClasses);
+		
+		assertThat(zipEntries(jarSpy))
+			.containsOnly(zipEntries(jar).toArray(new String[]{}));
 	}
 	
 	@Test public void movingSendsAgentJar() throws Exception{
@@ -116,7 +153,7 @@ public class AgentUtilTest {
 	@Test public void movingSendsSpecificPackage() throws Exception{
 		Agent agent = new DummyAgent();
 		File jarSpy = File.createTempFile("uOSAUtilTmpJar", ".jar");
-		//Using buffered i can check if close was properly called
+		
 		Gateway gateway = mockGateway(new ByteArrayOutputStream(),
 				new BufferedOutputStream(new FileOutputStream(jarSpy)));
 		
@@ -135,7 +172,7 @@ public class AgentUtilTest {
 	@Test public void movingSendsDalvikJarWhenTargetIsAndroid() throws Exception{
 		MyAgent agent = new MyAgent();
 		File jarSpy = File.createTempFile("uOSAUtilTmpJar", ".jar");
-		//Using buffered i can check if close was properly called
+		
 		Gateway gateway = mockGateway(new ByteArrayOutputStream(),
 						new BufferedOutputStream(new FileOutputStream(jarSpy)));
 		
@@ -177,13 +214,18 @@ public class AgentUtilTest {
 		agentUtil.move(agent,target,gateway);
 	}
 	
-	//TODO: We must assure that the properties are all transient
-	
 	private Gateway mockGateway(final OutputStream spy,
 								final OutputStream jarSpy)
 			throws ServiceCallException {
 		Gateway gateway = mock(Gateway.class);
-		when(gateway.callService(any(UpDevice.class), any(ServiceCall.class)))
+		
+		when(gateway.callService(	(UpDevice) any(), 
+									argThat(serviceMatcher("listKnownClasses"))))
+								.thenReturn(new ServiceResponse());
+		
+		ArgumentMatcher<ServiceCall> execute = serviceMatcher("executeAgent");
+		
+		when(gateway.callService(any(UpDevice.class), argThat(execute)))
 		.thenReturn(new ServiceResponse(){
 			@Override
 			public CallContext getMessageContext() {
@@ -202,6 +244,20 @@ public class AgentUtilTest {
 			}
 		});
 		return gateway;
+	}
+
+	private ArgumentMatcher<ServiceCall> serviceMatcher(final String serviceName) {
+		ArgumentMatcher<ServiceCall> execute = new ArgumentMatcher<ServiceCall>() {
+			public boolean matches(Object argument) {
+				if(argument instanceof ServiceCall){
+					ServiceCall call = (ServiceCall) argument;
+					return call != null && call.getService() != null 
+								&& call.getService().equals(serviceName);
+				}
+				return false;
+			}
+		};
+		return execute;
 	}
 	
 	private byte[] serialize(final MyAgent agent) throws IOException {

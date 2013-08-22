@@ -89,6 +89,7 @@ public class ExecutionDriver implements UosDriver {
 		driver = new UpDriver("uos.ExecutionDriver");
 		driver.addService("remoteExecution").addParameter("code", ParameterType.MANDATORY);
 		driver.addService("executeAgent");
+		driver.addService("listKnownClasses");
 	}
 
 	public ClassToolbox toolbox() {return toolbox;}
@@ -130,6 +131,11 @@ public class ExecutionDriver implements UosDriver {
 		}
 	}
 
+	public void listKnownClasses(ServiceCall call, ServiceResponse response,
+			CallContext ctx) {
+		response.addParameter("classes", toolbox.listKnownClasses());
+	}
+	
 	public void executeAgent(ServiceCall call, ServiceResponse response,
 			CallContext ctx) {
 		try {

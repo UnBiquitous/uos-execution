@@ -1,15 +1,23 @@
 package org.unbiquitous.driver.execution;
 
-import static org.junit.Assert.*;
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.unbiquitous.driver.execution.ExecutionDriver;
 import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
+import org.unbiquitous.json.JSONArray;
+import org.unbiquitous.json.JSONException;
+import org.unbiquitous.json.JSONObject;
 import org.unbiquitous.uos.core.driverManager.UosDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpService;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpService.ParameterType;
+import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceResponse;
 
 
 public class ExecutionDriverTest {
@@ -28,7 +36,7 @@ public class ExecutionDriverTest {
 		
 		//assert services
 		assertNotNull(uDriver.getServices());
-		assertEquals(2, uDriver.getServices().size());
+		assertEquals(3, uDriver.getServices().size());
 		
 		// Assert remoteExecution
 		UpService remoteExecution = uDriver.getServices().get(0);
@@ -43,8 +51,13 @@ public class ExecutionDriverTest {
 		UpService executeAgent = uDriver.getServices().get(1);
 		assertNotNull(executeAgent);
 		assertEquals("executeAgent", executeAgent.getName());
-		assertNull(executeAgent.getParameters());
+//		assertNull(executeAgent.getParameters());
 //		assertEquals(executeAgent.) tem que ser stream?
+		
+		// List Known Classes
+		UpService listKnownClasses = uDriver.getServices().get(2);
+		assertNotNull(listKnownClasses);
+		assertEquals("listKnownClasses", listKnownClasses.getName());
 	}
 	
 	@Test public void shouldUseInformedToolbox(){
@@ -52,5 +65,20 @@ public class ExecutionDriverTest {
 		driver = new ExecutionDriver(myBox);
 		assertSame(myBox, driver.toolbox());
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Test public void listKnownClasses() throws JSONException{
+		
+		ServiceResponse response = new ServiceResponse(); 
+		driver.listKnownClasses(null, response, null);
+		assertThat(response.getResponseData("classes"))
+							.isEqualTo(driver.toolbox().listKnownClasses());
+		JSONObject json =  new JSONObject(new JSONServiceResponse(response).toString());
+		JSONArray jsonArray = json.getJSONObject("responseData").getJSONArray("classes");
+		assertThat(jsonArray.toArray())
+							.isEqualTo(driver.toolbox().listKnownClasses());
+		
+	}
+	
 	
 }
