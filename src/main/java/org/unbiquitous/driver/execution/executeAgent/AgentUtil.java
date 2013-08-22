@@ -65,10 +65,28 @@ public class AgentUtil {
 		move(agent, target, gateway, true);
 	}
 	
-	public void move(Serializable agent, UpDevice target, Gateway gateway, boolean sendPackage) throws Exception {
+	public void move(Serializable agent, UpDevice target, Gateway gateway, 
+						boolean sendPackage) throws Exception {
 		if (agent.getClass().getModifiers() != Modifier.PUBLIC)
 			throw new RuntimeException("Agent class must be public");
 		
+		callExecute(agent, target, gateway, sendPackage, 
+					knownClasses(target, gateway));
+	}
+	
+	private void callExecute(Serializable agent, UpDevice target,
+			Gateway gateway, boolean sendPackage, List<String> knownClasses)
+			throws ServiceCallException, IOException, Exception {
+		ServiceResponse r = callExecute(target, gateway);
+		sendAgent(agent, r);
+		if (sendPackage){
+			sendPackage(agent, target, r, knownClasses);
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private List<String> knownClasses(UpDevice target, Gateway gateway)
+			throws ServiceCallException {
 		ServiceCall listKnownClasses = new ServiceCall( "uos.ExecutionDriver","listKnownClasses");
 		ServiceResponse rl = gateway.callService(target, listKnownClasses);
 		List<String> knownClasses ;
@@ -77,13 +95,9 @@ public class AgentUtil {
 		}else{
 			knownClasses = (List<String>) rl.getResponseData("classes");
 		}
-		
-		ServiceResponse r = callExecute(target, gateway);
-		sendAgent(agent, r);
-		if (sendPackage){
-			sendPackage(agent, target, r, knownClasses);
-		}
+		return knownClasses;
 	}
+	
 	private void sendPackage(Serializable agent, UpDevice target,
 			ServiceResponse r, List<String> knownClasses) throws Exception {
 		logger.fine("Target platform is: "+target.getProperty("platform"));

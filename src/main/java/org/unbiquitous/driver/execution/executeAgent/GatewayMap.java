@@ -33,6 +33,7 @@ public class GatewayMap implements Map{
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Object put(Object key, Object value) {
 		try {
 			String method = (String) key;
@@ -49,7 +50,7 @@ public class GatewayMap implements Map{
 			}else if (method == "listDrivers") {
 				return listDrivers(parameters);
 			}else{
-				this.globals.put(key,value);
+				globals.put(key,value);
 			}
 			
 		} catch (Exception e) {
@@ -110,6 +111,7 @@ public class GatewayMap implements Map{
 		return null;
 	}
 	
+	@SuppressWarnings("static-access")
 	public Object get(Object key) {
 		String method = (String) key;
 		if (method == "getCurrentDevice"){

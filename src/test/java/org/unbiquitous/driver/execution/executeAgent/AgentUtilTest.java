@@ -94,6 +94,7 @@ public class AgentUtilTest {
 		assertArrayEquals(serialize(agent), agentSpy.toByteArray());
 	}
 	
+	@SuppressWarnings("serial")
 	@Test public void considerRemoteKnownClassesWhenCreatingJar() throws Exception{
 		MyAgent agent = new MyAgent();
 		File jarSpy = File.createTempFile("uOSAUtilTmpJar", ".jar");
