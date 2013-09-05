@@ -19,12 +19,8 @@ import org.unbiquitous.uos.core.adaptabitilyEngine.UosEventListener;
 import org.unbiquitous.uos.core.driverManager.DriverData;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
-import org.unbiquitous.uos.core.messageEngine.dataType.json.JSONDevice;
-import org.unbiquitous.uos.core.messageEngine.dataType.json.JSONDriver;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
-import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceResponse;
 
 
 public class GatewayMapTest {
@@ -47,13 +43,13 @@ public class GatewayMapTest {
 	
 	@Test public void convertMapPutToAServiceCall() throws Exception{
 		Map<String, Object> callParams = new HashMap<String, Object>();
-		callParams.put("device", new JSONDevice(device).toMap());
-		callParams.put("serviceCall", new JSONServiceCall(call).toMap());
+		callParams.put("device", device.toJSON());
+		callParams.put("serviceCall", call.toJSON());
 		
 		when(delegate.callService(eq(device), eq(call))).thenReturn(response);
 		
 		assertThat(map.put("callService",callParams))
-						.isEqualTo(new JSONServiceResponse(response).toMap());
+						.isEqualTo(response.toJSON().toMap());
 		
 		verify(delegate).callService(device,call);
 	}
@@ -66,7 +62,7 @@ public class GatewayMapTest {
 		Map<String, Object> parameters = new HashMap<String, Object>();
 
 		Map<String, Object> callParams = new HashMap<String, Object>();
-		callParams.put("device", new JSONDevice(device).toMap());
+		callParams.put("device", device.toJSON());
 		callParams.put("serviceName", serviceName);
 		callParams.put("driverName", driverName);
 		callParams.put("instanceId", instanceId);
@@ -78,7 +74,7 @@ public class GatewayMapTest {
 							.thenReturn(response);
 		
 		assertThat(map.put("callService",callParams))
-						.isEqualTo(new JSONServiceResponse(response).toMap());
+						.isEqualTo(response.toJSON().toMap());
 		
 		verify(delegate).callService(	device, 	serviceName, 	driverName,
 										instanceId,	securityType,	parameters);
@@ -91,7 +87,7 @@ public class GatewayMapTest {
 		
 		Map<String, Object> callParams = new HashMap<String, Object>();
 		callParams.put("listener", listener); //TODO: Maybe uOS Won't like this 
-		callParams.put("device", new JSONDevice(device).toMap());
+		callParams.put("device", device.toJSON());
 		callParams.put("driver", driver);
 		callParams.put("eventKey", eventKey);
 		
@@ -108,7 +104,7 @@ public class GatewayMapTest {
 		
 		Map<String, Object> callParams = new HashMap<String, Object>();
 		callParams.put("listener", listener); //TODO: Maybe uOS Won't like this 
-		callParams.put("device", new JSONDevice(device).toMap());
+		callParams.put("device", device.toJSON());
 		callParams.put("driver", driver);
 		callParams.put("instanceId", instanceId);
 		callParams.put("eventKey", eventKey);
@@ -127,7 +123,7 @@ public class GatewayMapTest {
 	@Test public void convertMapGetToAgetCurrentDevice() throws Exception{
 		when(delegate.getCurrentDevice()).thenReturn(device);
 		
-		assertEquals(new JSONDevice(device).toMap(),(Map<?, ?>)map.get("getCurrentDevice"));
+		assertEquals(device.toJSON().toMap(),(Map<?, ?>)map.get("getCurrentDevice"));
 		
 		verify(delegate).getCurrentDevice();
 	}
@@ -135,7 +131,7 @@ public class GatewayMapTest {
 	@Test public void convertMapPutToAgetCurrentDevice() throws Exception{
 		when(delegate.getCurrentDevice()).thenReturn(device);
 		
-		assertEquals(new JSONDevice(device).toMap(),(Map<?, ?>)map.put("getCurrentDevice",null));
+		assertEquals(device.toJSON().toMap(),(Map<?, ?>)map.put("getCurrentDevice",null));
 		
 		verify(delegate).getCurrentDevice();
 	}
@@ -149,8 +145,8 @@ public class GatewayMapTest {
 		response.add(driverData);
 		
 		Map<String, Object> expected_data = new HashMap<String, Object>();
-		expected_data.put("driver",new JSONDriver(driver).toMap());
-		expected_data.put("device",new JSONDevice(device).toMap());
+		expected_data.put("driver",driver.toJSON().toMap());
+		expected_data.put("device",device.toJSON().toMap());
 		expected_data.put("instanceID",instanceID);
 		List<Map<String, Object>> expected = new ArrayList<Map<String, Object>>();
 		expected.add(expected_data);

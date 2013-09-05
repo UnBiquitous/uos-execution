@@ -17,7 +17,6 @@ import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpService;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpService.ParameterType;
 import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
-import org.unbiquitous.uos.core.messageEngine.messages.json.JSONServiceResponse;
 
 
 public class ExecutionDriverTest {
@@ -73,7 +72,7 @@ public class ExecutionDriverTest {
 		driver.listKnownClasses(null, response, null);
 		assertThat(response.getResponseData("classes"))
 							.isEqualTo(driver.toolbox().listKnownClasses());
-		JSONObject json =  new JSONObject(new JSONServiceResponse(response).toString());
+		JSONObject json =  new JSONObject(response.toJSON().toString());
 		JSONArray jsonArray = json.getJSONObject("responseData").getJSONArray("classes");
 		assertThat(jsonArray.toArray())
 							.isEqualTo(driver.toolbox().listKnownClasses());
