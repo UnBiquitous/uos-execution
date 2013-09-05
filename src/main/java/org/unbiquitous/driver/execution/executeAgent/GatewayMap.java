@@ -15,8 +15,8 @@ import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
 import org.unbiquitous.uos.core.adaptabitilyEngine.UosEventListener;
 import org.unbiquitous.uos.core.driverManager.DriverData;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.Call;
+import org.unbiquitous.uos.core.messageEngine.messages.Response;
 
 
 @SuppressWarnings("rawtypes")
@@ -74,9 +74,9 @@ public class GatewayMap implements Map{
 	@SuppressWarnings("unchecked")
 	private Object callService(Map parameters) throws ServiceCallException, JSONException {
 		UpDevice device = UpDevice.fromJSON((JSONObject) parameters.get("device")); 
-		ServiceResponse response ;
+		Response response ;
 		if (parameters.size() == 2){
-			ServiceCall call = ServiceCall.fromJSON((JSONObject) parameters.get("serviceCall"));
+			Call call = Call.fromJSON((JSONObject) parameters.get("serviceCall"));
 			response = delegate.callService(	device, call);
 		}else{
 			response =  delegate.callService(	

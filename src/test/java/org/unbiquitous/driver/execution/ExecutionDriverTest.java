@@ -16,7 +16,7 @@ import org.unbiquitous.uos.core.driverManager.UosDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpService;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpService.ParameterType;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.Response;
 
 
 public class ExecutionDriverTest {
@@ -68,7 +68,7 @@ public class ExecutionDriverTest {
 	@SuppressWarnings("unchecked")
 	@Test public void listKnownClasses() throws JSONException{
 		
-		ServiceResponse response = new ServiceResponse(); 
+		Response response = new Response(); 
 		driver.listKnownClasses(null, response, null);
 		assertThat(response.getResponseData("classes"))
 							.isEqualTo(driver.toolbox().listKnownClasses());

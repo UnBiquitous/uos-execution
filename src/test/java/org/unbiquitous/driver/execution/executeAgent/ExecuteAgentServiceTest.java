@@ -33,8 +33,8 @@ import org.junit.rules.TemporaryFolder;
 import org.unbiquitous.driver.execution.ExecutionDriver;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.applicationManager.CallContext;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.Call;
+import org.unbiquitous.uos.core.messageEngine.messages.Response;
 
 
 public class ExecuteAgentServiceTest {
@@ -43,13 +43,13 @@ public class ExecuteAgentServiceTest {
     public TemporaryFolder folder= new TemporaryFolder();
 	
 	private ExecutionDriver driver;
-	private ServiceResponse response;
+	private Response response;
 	
 	private File tempDir;
 	
 	@Before public void setUp(){
 		driver = new ExecutionDriver();
-		response = new ServiceResponse();
+		response = new Response();
 		tempDir = folder.getRoot();
 	}
 	
@@ -348,7 +348,7 @@ public class ExecuteAgentServiceTest {
 		new ObjectOutputStream(agentSpy).writeObject(a);
 		final byte[] agentArray = agentSpy.toByteArray();
 		
-		final ServiceCall call = new ServiceCall();
+		final Call call = new Call();
 			// These parameters remains a question since when the
 			// file or serialized object fail during transfer the 
 			// execution simply doesn't occur.

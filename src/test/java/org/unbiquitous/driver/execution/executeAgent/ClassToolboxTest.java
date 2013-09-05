@@ -28,7 +28,7 @@ import org.mockito.Mockito;
 import org.unbiquitous.driver.execution.executeAgent.MyAgent.AgentSpy;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.messageEngine.messages.Notify;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
+import org.unbiquitous.uos.core.messageEngine.messages.Call;
 
 
 public class ClassToolboxTest {
@@ -188,14 +188,14 @@ public class ClassToolboxTest {
 		File jar = box.packageJarFor(
 				org.unbiquitous.driver.execution.executeAgent.dummy.DummyAgent.class,
 				new ArrayList<String>(){{
-					add(ServiceCall.class.getName());
+					add(Call.class.getName());
 					add(Notify.class.getName());
 					add(Gateway.class.getName());
 				}}
 				);
 		
 		assertThat(zipEntries(jar)).doesNotContain(
-				ServiceCall.class.getName().replace(".", "/")+".class",
+				Call.class.getName().replace(".", "/")+".class",
 				Notify.class.getName().replace(".", "/")+".class",
 				Gateway.class.getName().replace(".", "/")+".class");
 	}

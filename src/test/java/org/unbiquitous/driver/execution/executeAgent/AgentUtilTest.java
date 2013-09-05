@@ -35,9 +35,9 @@ import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
 import org.unbiquitous.uos.core.applicationManager.CallContext;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.Call;
+import org.unbiquitous.uos.core.messageEngine.messages.Call.ServiceType;
+import org.unbiquitous.uos.core.messageEngine.messages.Response;
 
 
 public class AgentUtilTest {
@@ -60,16 +60,16 @@ public class AgentUtilTest {
 		agentUtil.move(new MyAgent(),target,gateway);
 		
 		ArgumentCaptor<UpDevice> deviceCaptor = ArgumentCaptor.forClass(UpDevice.class);
-		ArgumentCaptor<ServiceCall> callCaptor = ArgumentCaptor.forClass(ServiceCall.class);
+		ArgumentCaptor<Call> callCaptor = ArgumentCaptor.forClass(Call.class);
 		
 		verify(gateway,times(2)).callService(deviceCaptor.capture(), callCaptor.capture());
 		
 		assertEquals(target, deviceCaptor.getValue());
-		ServiceCall listKnownClasses = callCaptor.getAllValues().get(0);
+		Call listKnownClasses = callCaptor.getAllValues().get(0);
 		assertEquals("uos.ExecutionDriver", listKnownClasses.getDriver());
 		assertEquals("listKnownClasses", listKnownClasses.getService());
 		
-		ServiceCall executeAgent = callCaptor.getAllValues().get(1);
+		Call executeAgent = callCaptor.getAllValues().get(1);
 		assertEquals("uos.ExecutionDriver", executeAgent.getDriver());
 		assertEquals("executeAgent", executeAgent.getService());
 		assertEquals("Must have 2 channels (agent and jar)",2, 
@@ -106,7 +106,7 @@ public class AgentUtilTest {
 			add(MyAgent.AgentSpy.class.getName());
 		}};
 		
-		ServiceResponse knownClassesResponse = new ServiceResponse();
+		Response knownClassesResponse = new Response();
 		knownClassesResponse.addParameter("classes", new JSONArray(knownClasses));
 		
 		when(gateway.callService((UpDevice) any(), argThat(serviceMatcher("listKnownClasses"))))
@@ -222,12 +222,12 @@ public class AgentUtilTest {
 		
 		when(gateway.callService(	(UpDevice) any(), 
 									argThat(serviceMatcher("listKnownClasses"))))
-								.thenReturn(new ServiceResponse());
+								.thenReturn(new Response());
 		
-		ArgumentMatcher<ServiceCall> execute = serviceMatcher("executeAgent");
+		ArgumentMatcher<Call> execute = serviceMatcher("executeAgent");
 		
 		when(gateway.callService(any(UpDevice.class), argThat(execute)))
-		.thenReturn(new ServiceResponse(){
+		.thenReturn(new Response(){
 			@Override
 			public CallContext getMessageContext() {
 				return new CallContext(){
@@ -247,11 +247,11 @@ public class AgentUtilTest {
 		return gateway;
 	}
 
-	private ArgumentMatcher<ServiceCall> serviceMatcher(final String serviceName) {
-		ArgumentMatcher<ServiceCall> execute = new ArgumentMatcher<ServiceCall>() {
+	private ArgumentMatcher<Call> serviceMatcher(final String serviceName) {
+		ArgumentMatcher<Call> execute = new ArgumentMatcher<Call>() {
 			public boolean matches(Object argument) {
-				if(argument instanceof ServiceCall){
-					ServiceCall call = (ServiceCall) argument;
+				if(argument instanceof Call){
+					Call call = (Call) argument;
 					return call != null && call.getService() != null 
 								&& call.getService().equals(serviceName);
 				}

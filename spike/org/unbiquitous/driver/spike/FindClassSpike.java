@@ -19,9 +19,9 @@ import org.unbiquitous.uos.core.UOS;
 import org.unbiquitous.uos.core.UOSLogging;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.Call;
+import org.unbiquitous.uos.core.messageEngine.messages.Call.ServiceType;
+import org.unbiquitous.uos.core.messageEngine.messages.Response;
 
 
 public class FindClassSpike {
@@ -107,13 +107,13 @@ public class FindClassSpike {
 
 	protected static void moveTo(Agent a, UpDevice to, Gateway g){
 		
-		ServiceCall move = new ServiceCall("uos.ExecutionDriver", "executeAgent");
+		Call move = new Call("uos.ExecutionDriver", "executeAgent");
 		move.setChannels(2);
 		move.setServiceType(ServiceType.STREAM);
 		move.addParameter("class", a.getClass().getName());
 		
 		try {
-			ServiceResponse r = g.callService(to, move);
+			Response r = g.callService(to, move);
 			logger.fine("Opening agent stream.");
 			ObjectOutputStream writer_agent = new ObjectOutputStream(r.getMessageContext().getDataOutputStream(0));
 			logger.fine("Sending agent.");

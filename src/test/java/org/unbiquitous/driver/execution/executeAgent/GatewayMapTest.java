@@ -19,8 +19,8 @@ import org.unbiquitous.uos.core.adaptabitilyEngine.UosEventListener;
 import org.unbiquitous.uos.core.driverManager.DriverData;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.Call;
+import org.unbiquitous.uos.core.messageEngine.messages.Response;
 
 
 public class GatewayMapTest {
@@ -28,8 +28,8 @@ public class GatewayMapTest {
 	private Gateway delegate;
 	private GatewayMap map;
 	private UpDevice device;
-	private ServiceCall call;
-	private ServiceResponse response;
+	private Call call;
+	private Response response;
 
 	@SuppressWarnings("rawtypes")
 	@Before public void setUp(){
@@ -37,8 +37,8 @@ public class GatewayMapTest {
 		map = new GatewayMap(delegate);
 		GatewayMap.globals = new HashMap();
 		device = new UpDevice("d1").addNetworkInterface("addr", "t");
-		call = new ServiceCall("dr1","s1","i1").addParameter("p", "v");
-		response = new ServiceResponse().addParameter("teste", "t");
+		call = new Call("dr1","s1","i1").addParameter("p", "v");
+		response = new Response().addParameter("teste", "t");
 	}
 	
 	@Test public void convertMapPutToAServiceCall() throws Exception{

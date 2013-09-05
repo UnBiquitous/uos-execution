@@ -23,8 +23,8 @@ import org.unbiquitous.uos.core.applicationManager.CallContext;
 import org.unbiquitous.uos.core.driverManager.UosDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDriver;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpService.ParameterType;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.Call;
+import org.unbiquitous.uos.core.messageEngine.messages.Response;
 
 
 /**
@@ -34,14 +34,14 @@ import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
  * 
  * Its services are:
  * 
- * {@link #remoteExecution(ServiceCall, ServiceResponse, UOSMessageContext)}
+ * {@link #remoteExecution(Call, Response, UOSMessageContext)}
  * 
  * This service expects a Lua script through the "code" parameter. Any 
  * other parameter is available for the execution of the scripted code.
  * Access to the parameters is done through the <code>get(<key>)</code> function.
  * The response parameters are set using the <code>set(<key>)</code> function.
  * 
- * {@link #executeAgent(ServiceCall, ServiceResponse, UOSMessageContext)}
+ * {@link #executeAgent(Call, Response, UOSMessageContext)}
  * 
  * This service receives a Serialized {@link Agent} on channel 0 and resumes its 
  * execution. No other class must be transfered, aside from the Agent itself, 
@@ -102,7 +102,7 @@ public class ExecutionDriver implements UosDriver {
 
 	public List<UpDriver> getParent() {	return null;	}
 	
-	public void remoteExecution(ServiceCall call, ServiceResponse response,
+	public void remoteExecution(Call call, Response response,
 			CallContext object) {
 		try {
 			script_id++;
@@ -131,12 +131,12 @@ public class ExecutionDriver implements UosDriver {
 		}
 	}
 
-	public void listKnownClasses(ServiceCall call, ServiceResponse response,
+	public void listKnownClasses(Call call, Response response,
 			CallContext ctx) {
 		response.addParameter("classes", toolbox.listKnownClasses());
 	}
 	
-	public void executeAgent(ServiceCall call, ServiceResponse response,
+	public void executeAgent(Call call, Response response,
 			CallContext ctx) {
 		try {
 			if(ctx.getDataInputStream() == null){

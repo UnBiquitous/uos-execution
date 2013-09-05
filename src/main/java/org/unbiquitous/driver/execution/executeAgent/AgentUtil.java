@@ -15,9 +15,9 @@ import org.unbiquitous.uos.core.UOSLogging;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
 import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceCall.ServiceType;
-import org.unbiquitous.uos.core.messageEngine.messages.ServiceResponse;
+import org.unbiquitous.uos.core.messageEngine.messages.Call;
+import org.unbiquitous.uos.core.messageEngine.messages.Call.ServiceType;
+import org.unbiquitous.uos.core.messageEngine.messages.Response;
 
 
 /**
@@ -77,7 +77,7 @@ public class AgentUtil {
 	private void callExecute(Serializable agent, UpDevice target,
 			Gateway gateway, boolean sendPackage, List<String> knownClasses)
 			throws ServiceCallException, IOException, Exception {
-		ServiceResponse r = callExecute(target, gateway);
+		Response r = callExecute(target, gateway);
 		sendAgent(agent, r);
 		if (sendPackage){
 			sendPackage(agent, target, r, knownClasses);
@@ -87,8 +87,8 @@ public class AgentUtil {
 	@SuppressWarnings("unchecked")
 	private List<String> knownClasses(UpDevice target, Gateway gateway)
 			throws ServiceCallException {
-		ServiceCall listKnownClasses = new ServiceCall( "uos.ExecutionDriver","listKnownClasses");
-		ServiceResponse rl = gateway.callService(target, listKnownClasses);
+		Call listKnownClasses = new Call( "uos.ExecutionDriver","listKnownClasses");
+		Response rl = gateway.callService(target, listKnownClasses);
 		List<String> knownClasses ;
 		if(rl.getResponseData("classes") instanceof JSONArray){
 			knownClasses = ((JSONArray) rl.getResponseData("classes")).toArray();
@@ -99,7 +99,7 @@ public class AgentUtil {
 	}
 	
 	private void sendPackage(Serializable agent, UpDevice target,
-			ServiceResponse r, List<String> knownClasses) throws Exception {
+			Response r, List<String> knownClasses) throws Exception {
 		logger.fine("Target platform is: "+target.getProperty("platform"));
 		if ("Dalvik".equalsIgnoreCase((String)target.getProperty("platform"))){
 			sendDalvik(agent, r, knownClasses);
@@ -108,15 +108,15 @@ public class AgentUtil {
 		}
 	}
 
-	private void sendJar(Serializable agent, ServiceResponse r, List<String> knownClasses) throws Exception{
+	private void sendJar(Serializable agent, Response r, List<String> knownClasses) throws Exception{
 		sendPackage(r, toolbox.packageJarFor(agent.getClass(), knownClasses));
 	}
 
-	private void sendDalvik(Serializable agent, ServiceResponse r, List<String> knownClasses) throws Exception{
+	private void sendDalvik(Serializable agent, Response r, List<String> knownClasses) throws Exception{
 		sendPackage(r, toolbox.packageDalvikFor(agent.getClass(), knownClasses));
 	}
 
-	private void sendPackage(ServiceResponse r, File pkg) throws IOException {
+	private void sendPackage(Response r, File pkg) throws IOException {
 		FileInputStream reader = new FileInputStream(pkg);
 		byte[] buff = new byte[1024];
 		int read = 0;
@@ -128,21 +128,21 @@ public class AgentUtil {
 		reader.close();
 	}
 	
-	private void sendAgent(Serializable agent, ServiceResponse r) throws IOException {
+	private void sendAgent(Serializable agent, Response r) throws IOException {
 		ObjectOutputStream writer_agent = new ObjectOutputStream(
 								r.getMessageContext().getDataOutputStream(0));
 		writer_agent.writeObject(agent);
 		writer_agent.close();
 	}
 
-	private ServiceResponse callExecute(UpDevice target, Gateway gateway)
+	private Response callExecute(UpDevice target, Gateway gateway)
 			throws ServiceCallException {
-		ServiceCall execute = new ServiceCall( "uos.ExecutionDriver","executeAgent");
+		Call execute = new Call( "uos.ExecutionDriver","executeAgent");
 		execute.setChannels(2);
 		execute.setServiceType(ServiceType.STREAM);
 		execute.addParameter("jar", "true");
 
-		ServiceResponse r = gateway.callService(target, execute);
+		Response r = gateway.callService(target, execute);
 		return r;
 	}
 
