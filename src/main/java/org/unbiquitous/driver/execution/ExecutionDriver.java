@@ -18,6 +18,7 @@ import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
 import org.unbiquitous.driver.execution.executeAgent.GatewayMap;
 import org.unbiquitous.driver.execution.remoteExecution.StringInputStream;
 import org.unbiquitous.driver.execution.remoteExecution.UosLuaCall;
+import org.unbiquitous.uos.core.InitialProperties;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.applicationManager.CallContext;
 import org.unbiquitous.uos.core.driverManager.UosDriver;
@@ -96,7 +97,7 @@ public class ExecutionDriver implements UosDriver {
 	
 	public UpDriver getDriver() {	return driver;	}
 
-	public void init(Gateway gateway, String instanceId) {this.gateway = gateway;}
+	public void init(Gateway gateway, InitialProperties properties, String instanceId) {this.gateway = gateway;}
 
 	public void destroy() {}
 

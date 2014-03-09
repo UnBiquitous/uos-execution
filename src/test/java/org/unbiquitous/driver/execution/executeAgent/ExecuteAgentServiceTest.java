@@ -97,7 +97,7 @@ public class ExecuteAgentServiceTest {
 		
 		final Integer before = MyAnonymousAgent.Spy.count;
 		
-		driver.init(mock(Gateway.class), "me");
+		driver.init(mock(Gateway.class), null, "me");
 		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
@@ -264,7 +264,7 @@ public class ExecuteAgentServiceTest {
 		
 		final Gateway g = mock(Gateway.class);
 		
-		driver.init(g, null);
+		driver.init(g, null, null);
 		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
@@ -283,7 +283,7 @@ public class ExecuteAgentServiceTest {
 		
 		final Gateway g = mock(Gateway.class);
 		
-		driver.init(g, null);
+		driver.init(g, null, null);
 		execute(a);
 		
 		assertNull("No error should be found.",response.getError());
@@ -303,6 +303,7 @@ public class ExecuteAgentServiceTest {
 	//TODO: check if there is a way to do it with OSGi
 	//TODO? Must the agent have a lifecycle?
 	//TODO? Do we need to control the execution of the Agent.
+	//TODO: Agents should have access to properties ?
 	
 	static interface EventuallyAssert{
 		boolean assertion();
