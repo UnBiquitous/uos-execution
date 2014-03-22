@@ -93,7 +93,7 @@ public class GatewayMapTest {
 		
 		map.put("registerForEvent",callParams);
 		
-		verify(delegate).registerForEvent(listener, device, driver, eventKey);
+		verify(delegate).register(listener, device, driver, eventKey);
 	}
 	
 	@Test public void convertMapPutToARegisterForEventWithFullParameters() throws Exception{
@@ -111,7 +111,7 @@ public class GatewayMapTest {
 		
 		map.put("registerForEvent",callParams);
 		
-		verify(delegate).registerForEvent(	listener, device, driver,
+		verify(delegate).register(	listener, device, driver,
 											instanceId, eventKey);
 	}
 	

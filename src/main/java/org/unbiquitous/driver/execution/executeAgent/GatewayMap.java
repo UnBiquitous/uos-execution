@@ -98,9 +98,9 @@ public class GatewayMap implements Map{
 		String eventKey				= (String)parameters.get("eventKey");
 		
 		if (parameters.size() == 4){
-			delegate.registerForEvent(listener,device,driver,eventKey);
+			delegate.register(listener,device,driver,eventKey);
 		}else{
-			delegate.registerForEvent(listener,device,driver,
+			delegate.register(listener,device,driver,
 								(String)parameters.get("instanceId"),eventKey);
 		}
 		return null;
