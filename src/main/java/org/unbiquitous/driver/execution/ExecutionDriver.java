@@ -124,8 +124,6 @@ public class ExecutionDriver implements UosDriver {
 			script.append("	return Uos.get(UOS_ID,key)\n");
 			script.append("end\n");
 			script.append(call.getParameter("code"));
-//			InputStream file = new StringInputStream(script.toString());
-//			LoadState.load( file, "script_"+script_id, JsePlatform.standardGlobals() ).call();
 			Globals _G = JsePlatform.standardGlobals();
 			_G.load(new StringReader(script.toString()), "script_"+script_id).call();
 			
