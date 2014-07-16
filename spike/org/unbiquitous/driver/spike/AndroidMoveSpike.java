@@ -32,7 +32,7 @@ public class AndroidMoveSpike {
 		        };
 			}
 		};
-		u.init(prop);
+		u.start(prop);
 		
 		Gateway gate = u.getGateway();
 		

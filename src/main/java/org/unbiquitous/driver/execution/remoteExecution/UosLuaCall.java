@@ -1,8 +1,8 @@
 package org.unbiquitous.driver.execution.remoteExecution;
 
-import org.luaj.vm2.LuaString;
 import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.Varargs;
+import org.luaj.vm2.lib.ThreeArgFunction;
+import org.luaj.vm2.lib.TwoArgFunction;
 import org.luaj.vm2.lib.VarArgFunction;
 
 public class UosLuaCall extends VarArgFunction {
@@ -13,31 +13,32 @@ public class UosLuaCall extends VarArgFunction {
 	
 	public UosLuaCall() {}
 	
-	public LuaValue invoke(Varargs args) {
-		
-		switch ( opcode ) {
-	 		case 0: {
-	 			LuaValue t = tableOf();
-	 			this.bind(t, UosLuaCall.class, new String[] {"set", "get"}, 1 );
-	 			env.set("Uos", t);
-	 			return t;
-	 		}
-	 		case 1: { // set
-	 			long	id = Long.parseLong(args.optstring(1, LuaString.valueOf("")).tojstring());
-	 			String key = args.optstring(2, LuaString.valueOf("")).tojstring();
-	 			String value = args.optstring(3, LuaString.valueOf("")).tojstring();
-	 			values.setValue(id,key,value);
-	 			return LuaValue.valueOf(value);
-	 		}
-	 		case 2: { // get
-	 			long	id = Long.parseLong(args.optstring(1, LuaString.valueOf("")).tojstring());
-	 			String key = args.optstring(2, LuaString.valueOf("")).tojstring();
-	 			String value = values.getValue(id,key);
-				return value == null?LuaValue.NIL:LuaValue.valueOf(value);
-	 		}
-	 		default: return error("bad opcode: "+opcode);
- 		}
-
+	@Override
+	public LuaValue call(LuaValue modname, LuaValue env) {
+		LuaValue library = tableOf();
+		library.set( "set", new set() );
+		library.set( "get", new get() );
+		env.set( "Uos", library );
+		return library;
 	}
 
+	static class set extends ThreeArgFunction {
+		public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
+			long	id = Long.parseLong(arg1.tojstring());
+ 			String key = arg2.tojstring();
+ 			String value = arg3.tojstring();
+ 			values.setValue(id,key,value);
+ 			return LuaValue.valueOf(value);
+		}
+	}
+	
+	static class get extends TwoArgFunction {
+		public LuaValue call(LuaValue arg1, LuaValue arg2) {
+			long	id = Long.parseLong(arg1.tojstring());
+ 			String key = arg2.tojstring();
+ 			String value = values.getValue(id,key);
+			return value == null?LuaValue.NIL:LuaValue.valueOf(value);
+		}
+	}
+	
 }

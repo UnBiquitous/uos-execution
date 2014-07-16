@@ -5,20 +5,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.StringReader;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.luaj.vm2.LoadState;
+import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaError;
-import org.luaj.vm2.LuaTable;
+import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.JsePlatform;
-import org.unbiquitous.driver.execution.remoteExecution.CallValues;
-import org.unbiquitous.driver.execution.remoteExecution.StringInputStream;
-import org.unbiquitous.driver.execution.remoteExecution.UosLuaCall;
 
 
 public class UosLuaCallTest {
-	private LuaTable global;
+	private Globals global;
 	private CallValues values;
 	
 	@Before
@@ -37,7 +36,7 @@ public class UosLuaCallTest {
 		StringBuffer script = createBaseScript(1);
 		script.append("Uos.set(UOS_ID,'a',5)\n");
 		
-		LoadState.load( new StringInputStream(script.toString()), "myscript", global ).call();
+		global.load( new StringReader(script.toString()), "myscript" ).call();
 		
 		assertEquals("5",values.getValue(1,"a"));
 	}
@@ -48,7 +47,7 @@ public class UosLuaCallTest {
 		script.append("Uos.set(UOS_ID,'a',5)\n");
 		script.append("Uos.set(UOS_ID,'b',7)\n");
 		
-		LoadState.load( new StringInputStream(script.toString()), "myscript", global ).call();
+		global.load( new StringReader(script.toString()), "myscript" ).call();
 		
 		assertEquals("5",values.getValue(1,"a"));
 		assertEquals("7",values.getValue(1,"b"));
@@ -59,11 +58,11 @@ public class UosLuaCallTest {
 		StringBuffer script = createBaseScript(1);
 		script.append("Uos.set(UOS_ID,'a',5)\n");
 		
-		LoadState.load( new StringInputStream(script.toString()), "myscript", global ).call();
+		global.load( new StringReader(script.toString()), "myscript").call();
 		
 		StringBuffer script2 = createBaseScript(2);
 		script2.append("Uos.set(UOS_ID,'a',15)\n");
-		LoadState.load( new StringInputStream(script2.toString()), "myscript2", global ).call();
+		global.load( new StringReader(script2.toString()), "myscript2").call();
 		
 		assertEquals("5",values.getValue(1,"a"));
 		assertEquals("15",values.getValue(2,"a"));
@@ -75,7 +74,7 @@ public class UosLuaCallTest {
 		StringBuffer script = createBaseScript(1);
 		script.append("Uos.set(UOS_ID,'a',Uos.get(UOS_ID,'b'))\n");
 		
-		LoadState.load( new StringInputStream(script.toString()), "myscript", global ).call();
+		global.load( new StringReader(script.toString()), "myscript").call();
 		
 		assertEquals("7",values.getValue(1,"a"));
 	}
@@ -86,13 +85,13 @@ public class UosLuaCallTest {
 		StringBuffer script = createBaseScript(1);
 		script.append("Uos.set(UOS_ID,'a',Uos.get(UOS_ID,'b'))\n");
 		
-		LoadState.load( new StringInputStream(script.toString()), "myscript", global ).call();
+		global.load( new StringReader(script.toString()), "myscript").call();
 		
 		values.setValue(2,"b","8");
 		StringBuffer script2 = createBaseScript(2);
 		script2.append("Uos.set(UOS_ID,'a',Uos.get(UOS_ID,'b'))\n");
 		
-		LoadState.load( new StringInputStream(script2.toString()), "myscript", global ).call();
+		global.load( new StringReader(script2.toString()), "myscript").call();
 		
 		assertEquals("7",values.getValue(1,"a"));
 		assertEquals("8",values.getValue(2,"a"));
@@ -103,9 +102,9 @@ public class UosLuaCallTest {
 		StringBuffer script = createBaseScript(1);
 		script.append("Uos.set(UOS_ID,'a',Uos.get(UOS_ID,'b'))\n");
 		
-		LoadState.load( new StringInputStream(script.toString()), "myscript", global ).call();
+		global.load( new StringReader(script.toString()), "myscript").call();
 		
-		assertEquals("",values.getValue(1,"a"));
+		assertEquals(LuaValue.NIL.toString(),values.getValue(1,"a"));
 	}
 	
 	@Test(expected=LuaError.class)
@@ -113,7 +112,7 @@ public class UosLuaCallTest {
 		StringBuffer script = createBaseScript(1);
 		script.append("Uos.sbrubbles(UOS_ID,'oh yeah')\n");
 		
-		LoadState.load( new StringInputStream(script.toString()), "myscript", global ).call();
+		global.load( new StringReader(script.toString()), "myscript").call();
 	}
 	
 	@Test

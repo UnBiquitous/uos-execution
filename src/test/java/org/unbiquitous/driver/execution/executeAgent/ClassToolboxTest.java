@@ -90,7 +90,7 @@ public class ClassToolboxTest {
 	}
 
 	@Test public void mustNotFindClassesOnBlacklistedJars() throws Exception{
-		box.add2BlackList("luaj-jse-2.0.2.jar");
+		box.add2BlackList("luaj-jse-3.0.jar");
 		assertStream(null, box.findClass(Lua.class));
 	}
 	
@@ -295,7 +295,7 @@ public class ClassToolboxTest {
 	}
 	
 	@Test public void optimizeJarForDalvik() throws Exception{
-		box.add2BlackList("luaj-jse-2.0.2.jar");
+		box.add2BlackList("luaj-jse-3.0.jar");
 		File dalvik = box.packageDalvikFor(MyJarAgent.class);
 		
 		Set<String> expected = new HashSet<String>();

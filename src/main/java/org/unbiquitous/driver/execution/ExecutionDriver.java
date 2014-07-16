@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
+import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.luaj.vm2.Globals;
 import org.luaj.vm2.LoadState;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.unbiquitous.driver.execution.executeAgent.Agent;
@@ -114,7 +116,7 @@ public class ExecutionDriver implements UosDriver {
 			
 			StringBuffer script = new StringBuffer();
 			script.append("UOS_ID="+(script_id)+"\n");
-			script.append("require( '"+UosLuaCall.class.getName()+"' )\n");
+			script.append("require '"+UosLuaCall.class.getName()+"' \n");
 			script.append("function set( key, value) \n");
 			script.append("	Uos.set(UOS_ID,key,value)\n");
 			script.append("end\n");
@@ -122,11 +124,13 @@ public class ExecutionDriver implements UosDriver {
 			script.append("	return Uos.get(UOS_ID,key)\n");
 			script.append("end\n");
 			script.append(call.getParameter("code"));
-			InputStream file = new StringInputStream(script.toString());
-			LoadState.load( file, "script_"+script_id, JsePlatform.standardGlobals() ).call();
+//			InputStream file = new StringInputStream(script.toString());
+//			LoadState.load( file, "script_"+script_id, JsePlatform.standardGlobals() ).call();
+			Globals _G = JsePlatform.standardGlobals();
+			_G.load(new StringReader(script.toString()), "script_"+script_id).call();
 			
 			response.addParameter("value", UosLuaCall.values().getValue(script_id, "value"));
-		} catch (IOException e) {
+		} catch (Exception e) {
 			logger.log(Level.SEVERE,"Error handling Execution call. Cause:",e);
 			response.setError("Error handling Execution call. Cause:"+e.getMessage());
 		}

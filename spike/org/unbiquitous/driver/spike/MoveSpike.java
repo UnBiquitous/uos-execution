@@ -39,7 +39,7 @@ public class MoveSpike {
 		        };
 			}
 		};
-		u.init(prop);
+		u.start(prop);
 		HelloAgent hello = new HelloAgent();
 		Gateway g = u.getGateway();
 		List<DriverData> drivers = null;
@@ -73,6 +73,6 @@ public class MoveSpike {
 		        };
 			}
 		};
-		u.init(prop);
+		u.start(prop);
 	}
 }
