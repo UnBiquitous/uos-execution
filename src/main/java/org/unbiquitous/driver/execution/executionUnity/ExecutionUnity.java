@@ -9,11 +9,12 @@ import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 import org.luaj.vm2.lib.VarArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
+import org.unbiquitous.driver.execution.executionUnity.ExecutionUnity.ExecutionHelper;
 
 public class ExecutionUnity {
 
 	private Globals _G;
-	private ExecutionHelper helper;
+//	private ExecutionHelper helper;
 
 	public interface ExecutionHelper {
 		String name();
@@ -25,25 +26,8 @@ public class ExecutionUnity {
 	}
 	
 	public ExecutionUnity(String script, final ExecutionHelper helper) {
-		this.helper = helper;
 		loadScript(script);
-		String name = "help";
-		if(helper != null && helper.name() != null){
-			name = helper.name();
-		}
-		_G.set(name, new VarArgFunction() {
-			@Override
-			public Varargs invoke(Varargs args) {
-				String []sargs = new String[args.narg()]; 
-				for(int i = 0; i < args.narg(); i++){
-					sargs[i] = args.arg(i+1).tojstring();
-				}
-				if(helper != null){
-					return varargsOf(new LuaValue[]{LuaString.valueOf(helper.invoke(sargs))});	
-				}
-				return varargsOf(new LuaValue[]{LuaValue.NIL});
-			}
-		});
+		addHelper(helper);
 	}
 
 	private void loadScript(String script) {
@@ -57,4 +41,45 @@ public class ExecutionUnity {
 		return run.invoke().toString();
 	}
 
+	public void addHelper(ExecutionHelper helper) {
+		HelperFunction function = new HelperFunction(helper);
+		_G.set(function.name(), function);
+	}
+}
+
+class HelperFunction extends VarArgFunction {
+	private ExecutionHelper helper;
+
+	public HelperFunction(ExecutionHelper helper) {
+		this.helper = helper;
+	}
+	
+	public String name() {
+		String name = "help";
+		if(helper != null && helper.name() != null){
+			name = helper.name();
+		}
+		return name;
+	}
+	
+	@Override
+	public Varargs invoke(Varargs args) {
+		String[] sargs = varargsToStringArray(args);
+		return delegateToHelper(helper, sargs);
+	}
+
+	private Varargs delegateToHelper(ExecutionHelper helper, String[] sargs) {
+		if(helper != null){
+			return varargsOf(new LuaValue[]{LuaString.valueOf(helper.invoke(sargs))});	
+		}
+		return varargsOf(new LuaValue[]{LuaValue.NIL});
+	}
+
+	private String[] varargsToStringArray(Varargs args) {
+		String []sargs = new String[args.narg()]; 
+		for(int i = 0; i < args.narg(); i++){
+			sargs[i] = args.arg(i+1).tojstring();
+		}
+		return sargs;
+	}
 }

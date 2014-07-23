@@ -42,6 +42,9 @@ public class ExecutionUnityTest {
 		ExecutionUnity ex2 = new ExecutionUnity(script.toString());
 		assertThat(ex1.call("inc")).isEqualTo("1");
 		assertThat(ex2.call("inc")).isEqualTo("1");
+		assertThat(ex1.call("inc")).isEqualTo("2");
+		assertThat(ex1.call("inc")).isEqualTo("3");
+		assertThat(ex2.call("inc")).isEqualTo("2");
 	}
 
 	@Test
@@ -112,5 +115,32 @@ public class ExecutionUnityTest {
 					}
 				});
 		assertThat(ex.call("myMethod")).isEqualTo("13");
+	}
+	
+	@Test
+	public void multipleHelpersAreAccepted() {
+		StringBuffer script = new StringBuffer();
+		script.append("function theMethod() \n");
+		script.append("		value = numberOne() + doubleThat(5)\n");
+		script.append("		return value \n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString());
+		ex.addHelper(new ExecutionUnity.ExecutionHelper() {
+					public String name() {
+						return "numberOne";
+					}
+					public String invoke(String... args) {
+						return "1";
+					}
+				});
+		ex.addHelper(new ExecutionUnity.ExecutionHelper() {
+			public String name() {
+				return "doubleThat";
+			}
+			public String invoke(String... args) {
+				return ""+(2*Integer.parseInt(args[0]));
+			}
+		});
+		assertThat(ex.call("theMethod")).isEqualTo("11");
 	}
 }
