@@ -171,17 +171,41 @@ public class ExecutionUnityTest {
 		assertThat(ex.call("inc")).isEqualTo("8");
 	}
 	
-//	@Test public void unitsAreSerializableToJSON() {
-//		StringBuffer script = new StringBuffer();
-//		script.append("function inc() \n");
-//		script.append("		value = value + 3 \n");
-//		script.append("		return value \n");
-//		script.append("end\n");
-//		ExecutionUnity ex = new ExecutionUnity(script.toString());
-//		ex.setState("value",2);
-//		assertThat(ex.call("inc")).isEqualTo("5");
-//		assertThat(ex.call("inc")).isEqualTo("8");
-//	}
+	//TODO: set Inner state based on a map
 	
-	//TODO: serializable (JSON)
+	@Test public void unitsAreSerializableToJSON() {
+		StringBuffer script = new StringBuffer();
+		script.append("function two() \n");
+		script.append("		return 2 \n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString());
+		
+		ExecutionUnity deserialized = ExecutionUnity.fromJSON(ex.toJSON());
+		assertThat(ex.call("two")).isEqualTo("2");
+		assertThat(deserialized.call("two")).isEqualTo("2");
+	}
+	
+	@Test public void statesAreAlsoSerialized() {
+		StringBuffer script = new StringBuffer();
+		script.append("function addTwo() \n");
+		script.append("		value = value + 2 \n");
+		script.append("		return value \n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString());
+		ex.setState("value", 2);
+		assertThat(ex.call("addTwo")).isEqualTo("4");
+
+		ExecutionUnity deserialized = ExecutionUnity.fromJSON(ex.toJSON());
+		assertThat(deserialized.call("addTwo")).isEqualTo("6");
+	}
+	
+	@Test public void twoJSONSerializationsAreTheSame() {
+		StringBuffer script = new StringBuffer();
+		script.append("function two() \n");
+		script.append("		return 2 \n");
+		script.append("end\n");
+		ExecutionUnity ex1 = new ExecutionUnity(script.toString());
+		ExecutionUnity ex2 = new ExecutionUnity(script.toString());
+		assertThat(ex1.toJSON()).isEqualTo(ex2.toJSON());
+	}
 }
