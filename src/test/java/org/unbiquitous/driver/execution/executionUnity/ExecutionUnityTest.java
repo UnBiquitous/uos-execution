@@ -143,4 +143,8 @@ public class ExecutionUnityTest {
 		});
 		assertThat(ex.call("theMethod")).isEqualTo("11");
 	}
+	
+	//TODO: inner state
+	//TODO: external state
+	//TODO: serializable (JSON)
 }
