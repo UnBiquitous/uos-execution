@@ -45,6 +45,14 @@ public class ExecutionUnity {
 		HelperFunction function = new HelperFunction(helper);
 		_G.set(function.name(), function);
 	}
+
+	public void setState(String key, Object value) {
+		if(value == null){
+			_G.set(key, LuaValue.NIL);
+		}else{
+			_G.set(key, value.toString());
+		}
+	}
 }
 
 class HelperFunction extends VarArgFunction {

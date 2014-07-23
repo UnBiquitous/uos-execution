@@ -6,8 +6,7 @@ import org.junit.Test;
 
 public class ExecutionUnityTest {
 
-	@Test
-	public void mustExecuteCode() {
+	@Test public void mustExecuteCode() {
 		StringBuffer script = new StringBuffer();
 		script.append("function run() \n");
 		script.append("		count = 3 + 1\n");
@@ -17,8 +16,7 @@ public class ExecutionUnityTest {
 		assertThat(ex.call("run")).isEqualTo("4");
 	}
 
-	@Test
-	public void executedCodeMantainsGlobalState() {
+	@Test public void executedCodeMantainsGlobalState() {
 		StringBuffer script = new StringBuffer();
 		script.append("count  = 0 \n");
 		script.append("function inc() \n");
@@ -30,8 +28,7 @@ public class ExecutionUnityTest {
 		assertThat(ex.call("inc")).isEqualTo("2");
 	}
 
-	@Test
-	public void dontMixExecutionStateFromDifferentUnities() {
+	@Test public void dontMixExecutionStateFromDifferentUnities() {
 		StringBuffer script = new StringBuffer();
 		script.append("count  = 0 \n");
 		script.append("function inc() \n");
@@ -47,8 +44,7 @@ public class ExecutionUnityTest {
 		assertThat(ex2.call("inc")).isEqualTo("2");
 	}
 
-	@Test
-	public void allowToRegisterHelperMethods() {
+	@Test public void allowToRegisterHelperMethods() {
 		StringBuffer script = new StringBuffer();
 		script.append("function myMethod() \n");
 		script.append("		value = help()\n");
@@ -66,8 +62,7 @@ public class ExecutionUnityTest {
 		assertThat(ex.call("myMethod")).isEqualTo("42");
 	}
 
-	@Test
-	public void helperMethodsCanHaveMultipleArgs() {
+	@Test public void helperMethodsCanHaveMultipleArgs() {
 		StringBuffer script = new StringBuffer();
 		script.append("function m1() \n");
 		script.append("		return help(1,2) \n");
@@ -97,8 +92,7 @@ public class ExecutionUnityTest {
 		assertThat(ex.call("m2")).isEqualTo("6");
 	}
 
-	@Test
-	public void helperMethodsCanHaveOtherNames() {
+	@Test public void helperMethodsCanHaveOtherNames() {
 		StringBuffer script = new StringBuffer();
 		script.append("function myMethod() \n");
 		script.append("		value = luckyNumber()\n");
@@ -117,8 +111,7 @@ public class ExecutionUnityTest {
 		assertThat(ex.call("myMethod")).isEqualTo("13");
 	}
 	
-	@Test
-	public void multipleHelpersAreAccepted() {
+	@Test public void multipleHelpersAreAccepted() {
 		StringBuffer script = new StringBuffer();
 		script.append("function theMethod() \n");
 		script.append("		value = numberOne() + doubleThat(5)\n");
@@ -144,7 +137,51 @@ public class ExecutionUnityTest {
 		assertThat(ex.call("theMethod")).isEqualTo("11");
 	}
 	
-	//TODO: inner state
-	//TODO: external state
+	@Test public void stateMustBeAvailableAsVariablesToMethods() {
+		StringBuffer script = new StringBuffer();
+		script.append("function sum3() \n");
+		script.append("		return value+3 \n");
+		script.append("end\n");
+		script.append("function concat3() \n");
+		script.append("		return value..'3' \n");
+		script.append("end\n");
+		script.append("function justTheValue() \n");
+		script.append("		return value \n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString());
+		ex.setState("value",2);
+		assertThat(ex.call("sum3")).isEqualTo("5");
+		assertThat(ex.call("justTheValue")).isEqualTo("2");
+		ex.setState("value","abacate");
+		assertThat(ex.call("concat3")).isEqualTo("abacate3");
+		assertThat(ex.call("justTheValue")).isEqualTo("abacate");
+		ex.setState("value",null);
+		assertThat(ex.call("justTheValue")).isEqualTo("nil");
+	}
+	
+	@Test public void stateAreModifiable() {
+		StringBuffer script = new StringBuffer();
+		script.append("function inc() \n");
+		script.append("		value = value + 3 \n");
+		script.append("		return value \n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString());
+		ex.setState("value",2);
+		assertThat(ex.call("inc")).isEqualTo("5");
+		assertThat(ex.call("inc")).isEqualTo("8");
+	}
+	
+//	@Test public void unitsAreSerializableToJSON() {
+//		StringBuffer script = new StringBuffer();
+//		script.append("function inc() \n");
+//		script.append("		value = value + 3 \n");
+//		script.append("		return value \n");
+//		script.append("end\n");
+//		ExecutionUnity ex = new ExecutionUnity(script.toString());
+//		ex.setState("value",2);
+//		assertThat(ex.call("inc")).isEqualTo("5");
+//		assertThat(ex.call("inc")).isEqualTo("8");
+//	}
+	
 	//TODO: serializable (JSON)
 }
