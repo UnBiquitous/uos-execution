@@ -29,7 +29,10 @@ class HelperFunction extends VarArgFunction {
 
 	private Varargs delegateToHelper(ExecutionHelper helper, String[] sargs) {
 		if(helper != null){
-			return varargsOf(new LuaValue[]{LuaString.valueOf(helper.invoke(sargs))});	
+			String value = helper.invoke(sargs);
+			if(value != null){
+				return varargsOf(new LuaValue[]{LuaString.valueOf(value)});	
+			}
 		}
 		return varargsOf(new LuaValue[]{LuaValue.NIL});
 	}

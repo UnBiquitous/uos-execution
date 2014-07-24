@@ -15,6 +15,15 @@ public class ExecutionUnityTest {
 		ExecutionUnity ex = new ExecutionUnity(script.toString());
 		assertThat(ex.call("run")).isEqualTo("4");
 	}
+	
+	@Test public void notProblemWithVoidFunctions() {
+		StringBuffer script = new StringBuffer();
+		script.append("function run() \n");
+		script.append("		a = 1+1 \n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString());
+		assertThat(ex.call("run")).isEqualTo("nil");
+	}
 
 	@Test public void executedCodeMantainsGlobalState() {
 		StringBuffer script = new StringBuffer();
@@ -60,6 +69,23 @@ public class ExecutionUnityTest {
 					}
 				});
 		assertThat(ex.call("myMethod")).isEqualTo("42");
+	}
+	
+	@Test public void helperMethodCanReturnNull() {
+		StringBuffer script = new StringBuffer();
+		script.append("function myMethod() \n");
+		script.append("		return help()\n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString(),
+				new ExecutionUnity.ExecutionHelper() {
+					public String invoke(String... args) {
+						return null;
+					}
+					public String name() {
+						return null;
+					}
+				});
+		assertThat(ex.call("myMethod")).isEqualTo("nil");
 	}
 
 	@Test public void helperMethodsCanHaveMultipleArgs() {
