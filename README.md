@@ -43,6 +43,8 @@ Ex:
 ```Java
 	AgentUtil.move(new MyAgent(),targetDevice,gateway);
 ```
+
+
 	
 If you want to call the service directly, keep in mind that itd demands a code stream to be trasmited. This stream contains the jar of the transmited code.
 
@@ -74,3 +76,6 @@ Value: 4
 Global state can be changed (and stored) using `setState` method.
 
 Helper methods can be created using the `ExecutionUnity.ExecutionHelper` interface.
+
+
+Aditionally, an `ExecutionUnity` can be serialized and deserialized using `JSON` format, preserving the informed state and code.
