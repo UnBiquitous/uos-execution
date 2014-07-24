@@ -1,6 +1,8 @@
 package org.unbiquitous.driver.execution.executionUnity;
 
-import static org.fest.assertions.api.Assertions.*;
+import static org.fest.assertions.api.Assertions.assertThat;
+
+import java.util.HashMap;
 
 import org.junit.Test;
 
@@ -23,6 +25,27 @@ public class ExecutionUnityTest {
 		script.append("end\n");
 		ExecutionUnity ex = new ExecutionUnity(script.toString());
 		assertThat(ex.call("run")).isEqualTo("nil");
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked", "serial" })
+	@Test public void canSendParametersToCode() {
+		StringBuffer script = new StringBuffer();
+		script.append("function add2(value) \n");
+		script.append("		return value+2 \n");
+		script.append("end\n");
+		script.append("function concatBar(value) \n");
+		script.append("		return value..'bar' \n");
+		script.append("end\n");
+		script.append("function sumMap(value) \n");
+		script.append("		return value['x']+value['y'] \n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString());
+		assertThat(ex.call("add2",3)).isEqualTo("5");
+		assertThat(ex.call("concatBar","foo")).isEqualTo("foobar");
+		assertThat(ex.call("sumMap",new HashMap(){{
+			put("x",7);
+			put("y",11);
+		}})).isEqualTo("18");
 	}
 
 	@Test public void executedCodeMantainsGlobalState() {
