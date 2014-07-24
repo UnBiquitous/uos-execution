@@ -69,6 +69,9 @@ public class ExecutionUnity {
 		LuaValue value;
 		if(original instanceof Map){
 			value = convertMapToLuaTable((Map) original);
+		}else if(original instanceof Number){
+			//TODO: We're losing precision for integers
+			value = LuaValue.valueOf(Double.parseDouble(original.toString()));
 		}else{
 			value = LuaValue.valueOf(original.toString());
 		}
@@ -97,7 +100,7 @@ public class ExecutionUnity {
 		if(value == null){
 			_G.set(key, LuaValue.NIL);
 		}else{
-			_G.set(key, value.toString());
+			_G.set(key, convertObjectToLuaValue(value));
 		}
 	}
 
