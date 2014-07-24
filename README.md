@@ -1,4 +1,5 @@
-h1. Execution Driver
+Execution Driver
+================
 
 	This Project is part of the uOS:http://ubiquitos.googlecode.com middleware project.
 	It provides ways to explore the CPU of a device as a open resource.
@@ -12,7 +13,8 @@ h1. Execution Driver
 
 	The driver name is *"uos.ExecutionDriver"*
 
-h2. remoteExecution:
+remoteExecution:
+----------------
 	
 	To use the remote execution service just call the service named *"remoteExecution"*.
 
@@ -26,7 +28,8 @@ h2. remoteExecution:
 * *get(_key_)*: provide a way to access the parameters informed during the call.
 * *set(_key, value_)*: set the values that will be returned after execution is finished.
 	
-h2. executeAgent:
+executeAgent:
+-----------------
 
 	To use the agent service just call the service named *"executeAgent"*.
 	Two types of agents are accepted:
