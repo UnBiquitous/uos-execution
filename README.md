@@ -21,7 +21,7 @@ To use the remote execution service just call the service named *"remoteExecutio
 *Parameters:*
 
 * *"code"*: Lua code that is going to be executed.
- * Any other parameter will informed will be available to the script during execution.
+ * Any other parameter informed will be available to the script during execution.
 
 In the lua script two methods provides a way to interact with the service call:
 
@@ -45,3 +45,32 @@ Ex:
 ```
 	
 If you want to call the service directly, keep in mind that itd demands a code stream to be trasmited. This stream contains the jar of the transmited code.
+
+Execution Unity:
+-----------------
+
+This allows to create small personalized serializable excution unities that carry with them their state of execution.
+
+Ex:
+
+```Java
+StringBuffer script = new StringBuffer();
+script.append("value = 0 \n");
+script.append("function addTwo() \n");
+script.append("		value = value + 2 \n");
+script.append("		return value \n");
+script.append("end\n");
+ExecutionUnity ex = new ExecutionUnity(script.toString());
+System.out.println("Value: "+ex.call("addTwo"));
+System.out.println("Value: "+ex.call("addTwo"));
+```
+This will produce:
+
+```logtalk
+Value: 2
+Value: 4
+```
+
+Global state can be changed (and stored) using `setState` method.
+
+Helper methods can be created using the `ExecutionUnity.ExecutionHelper` interface.
