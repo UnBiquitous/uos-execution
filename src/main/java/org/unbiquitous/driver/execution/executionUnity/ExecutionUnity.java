@@ -1,6 +1,7 @@
 package org.unbiquitous.driver.execution.executionUnity;
 
 import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,9 +44,17 @@ public class ExecutionUnity {
 	}
 
 	public Object call(String methodName, Object ... params) {
-		LuaValue run = _G.get(methodName);
+		LuaValue run = retrieveMethod(methodName);
 		Varargs args = convertToLuaVarArgs(params);
 		return run.invoke(args).toString();
+	}
+
+	private LuaValue retrieveMethod(String methodName) {
+		LuaValue run = _G.get(methodName);
+		if(run == null || run == LuaValue.NIL){
+			throw new ExecutionError("Method '"+methodName+"' not found on execution unity.");
+		}
+		return run;
 	}
 
 	private Varargs convertToLuaVarArgs(Object... params) {

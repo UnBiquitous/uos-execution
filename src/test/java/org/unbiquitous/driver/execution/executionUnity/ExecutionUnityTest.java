@@ -2,12 +2,22 @@ package org.unbiquitous.driver.execution.executionUnity;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
 import org.junit.Test;
 
 public class ExecutionUnityTest {
 
+	@Test(expected=ExecutionError.class) public void throwsReadableExceptionWhenFunctionIsNotFound() {
+		StringBuffer script = new StringBuffer();
+		script.append("function run() \n");
+		script.append("		return 1 \n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString());
+		ex.call("doNotRun");
+	}
+	
 	@Test public void mustExecuteCode() {
 		StringBuffer script = new StringBuffer();
 		script.append("function run() \n");
