@@ -24,6 +24,7 @@ public class FSpike {
 			toFile(o, "HelloFromAndroidAgent");
 		}
 
+		@SuppressWarnings("resource")
 		private static void toFile(Object obj, String file_prefix) throws IOException, FileNotFoundException,
 				Exception {
 			ObjectOutputStream writer_agent = new ObjectOutputStream(

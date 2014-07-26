@@ -112,6 +112,7 @@ public class FindClassSpike {
 		move.setServiceType(ServiceType.STREAM);
 		move.addParameter("class", a.getClass().getName());
 		
+		InputStream clazz = null;
 		try {
 			Response r = g.callService(to, move);
 			logger.fine("Opening agent stream.");
@@ -123,7 +124,7 @@ public class FindClassSpike {
 			OutputStream writer_class = r.getMessageContext().getDataOutputStream(1);
 			final String classFile = findClass(a);
 			logger.fine("Sending class "+classFile);
-			InputStream clazz= new FileInputStream(classFile);
+			clazz = new FileInputStream(classFile);
 			logger.fine("Uffa.");
 			int b;
 			while((b = clazz.read())!= -1)
@@ -133,6 +134,14 @@ public class FindClassSpike {
 //			while (writer_agent.)
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			if (clazz != null){
+				try {
+					clazz.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }

@@ -2,7 +2,6 @@ package org.unbiquitous.driver.execution.executionUnity;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
 import org.junit.Test;
@@ -120,6 +119,45 @@ public class ExecutionUnityTest {
 				});
 		assertThat(ex.call("myMethod")).isEqualTo("nil");
 	}
+	
+	@Test public void helperMethodCanReturnNumbers() {
+		StringBuffer script = new StringBuffer();
+		script.append("function myMethod() \n");
+		script.append("		return help()\n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString(),
+				new ExecutionUnity.ExecutionHelper() {
+					public Object invoke(String... args) {
+						return 1;
+					}
+					public String name() {
+						return null;
+					}
+				});
+		assertThat(ex.call("myMethod")).isEqualTo("1");
+	}
+	
+	@SuppressWarnings({ "serial", "rawtypes", "unchecked" })
+	@Test public void helperMethodCanReturnMaps() {
+		StringBuffer script = new StringBuffer();
+		script.append("function myMethod() \n");
+		script.append("		v = help()\n");
+		script.append("		return v['a'] + v['b']\n");
+		script.append("end\n");
+		ExecutionUnity ex = new ExecutionUnity(script.toString(),
+				new ExecutionUnity.ExecutionHelper() {
+					public Object invoke(String... args) {
+						return new HashMap(){{
+							put("a",1);
+							put("b",2);
+						}};
+					}
+					public String name() {
+						return null;
+					}
+				});
+		assertThat(ex.call("myMethod")).isEqualTo("3");
+	}
 
 	@Test public void helperMethodsCanHaveMultipleArgs() {
 		StringBuffer script = new StringBuffer();
@@ -229,8 +267,6 @@ public class ExecutionUnityTest {
 		assertThat(ex.call("inc")).isEqualTo("5");
 		assertThat(ex.call("inc")).isEqualTo("8");
 	}
-	
-	//TODO: set Inner state based on a map
 	
 	@Test public void unitsAreSerializableToJSON() {
 		StringBuffer script = new StringBuffer();

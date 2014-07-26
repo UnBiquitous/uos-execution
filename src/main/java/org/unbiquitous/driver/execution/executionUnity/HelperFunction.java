@@ -1,6 +1,5 @@
 package org.unbiquitous.driver.execution.executionUnity;
 
-import org.luaj.vm2.LuaString;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 import org.luaj.vm2.lib.VarArgFunction;
@@ -23,25 +22,17 @@ class HelperFunction extends VarArgFunction {
 	
 	@Override
 	public Varargs invoke(Varargs args) {
-		String[] sargs = varargsToStringArray(args);
+		String[] sargs = Converter.varargsToStringArray(args);
 		return delegateToHelper(helper, sargs);
 	}
 
 	private Varargs delegateToHelper(ExecutionHelper helper, String[] sargs) {
 		if(helper != null){
-			String value = helper.invoke(sargs);
+			Object value = helper.invoke(sargs);
 			if(value != null){
-				return varargsOf(new LuaValue[]{LuaString.valueOf(value)});	
+				return Converter.objectArrayToLuaVarArgs(value);	
 			}
 		}
 		return varargsOf(new LuaValue[]{LuaValue.NIL});
-	}
-
-	private String[] varargsToStringArray(Varargs args) {
-		String []sargs = new String[args.narg()]; 
-		for(int i = 0; i < args.narg(); i++){
-			sargs[i] = args.arg(i+1).tojstring();
-		}
-		return sargs;
 	}
 }

@@ -2,7 +2,6 @@ package org.unbiquitous.driver.execution;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.io.StringReader;
@@ -13,12 +12,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.luaj.vm2.Globals;
-import org.luaj.vm2.LoadState;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.unbiquitous.driver.execution.executeAgent.Agent;
 import org.unbiquitous.driver.execution.executeAgent.ClassToolbox;
 import org.unbiquitous.driver.execution.executeAgent.GatewayMap;
-import org.unbiquitous.driver.execution.remoteExecution.StringInputStream;
 import org.unbiquitous.driver.execution.remoteExecution.UosLuaCall;
 import org.unbiquitous.uos.core.InitialProperties;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;

@@ -343,6 +343,7 @@ public class ExecuteAgentServiceTest {
 		
 		final PipedInputStream pipeForAgent = new PipedInputStream();
 		final DataInputStream agentStream = new DataInputStream(pipeForAgent);
+		@SuppressWarnings("resource")
 		PipedOutputStream whereToWriteAgent = new PipedOutputStream(pipeForAgent);
 		
 		ByteArrayOutputStream agentSpy = new ByteArrayOutputStream();
