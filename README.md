@@ -89,9 +89,9 @@ script.append("a = Uos.get(UOS_ID,'a') \n");
 script.append("b = Uos.get(UOS_ID,'b') \n");
 script.append("Uos.set(UOS_ID,'sum',a+b) \n");
 
-Call call = new Call('uos.ExecutionDriver','remoteExecution');
-call.addParameter('a',2);
-call.addParameter('b',3);
+Call call = new Call("uos.ExecutionDriver","remoteExecution");
+call.addParameter("a",2);
+call.addParameter("b",3);
 Response r = gateway.callService(call);
 System.out.println("Value: "+r.getResponseParam("sum"));
 ```
