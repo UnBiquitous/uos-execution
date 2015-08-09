@@ -1,5 +1,6 @@
 package org.unbiquitous.driver.execution.executeAgent;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -7,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.unbiquitous.json.JSONException;
-import org.unbiquitous.json.JSONObject;
 import org.unbiquitous.uos.core.adaptabitilyEngine.Gateway;
 import org.unbiquitous.uos.core.adaptabitilyEngine.NotifyException;
 import org.unbiquitous.uos.core.adaptabitilyEngine.ServiceCallException;
@@ -18,10 +17,14 @@ import org.unbiquitous.uos.core.messageEngine.dataType.UpDevice;
 import org.unbiquitous.uos.core.messageEngine.messages.Call;
 import org.unbiquitous.uos.core.messageEngine.messages.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 @SuppressWarnings("rawtypes")
-public class GatewayMap implements Map{
-
+public class GatewayMap implements Map {
+	private static final ObjectMapper mapper = new ObjectMapper();
+	
 	final Gateway delegate;
 	static HashMap globals = new HashMap();
 
@@ -43,7 +46,7 @@ public class GatewayMap implements Map{
 			}else if (method == "registerForEvent"){
 				return registerForEvent(parameters);
 			}else if (method == "getCurrentDevice") {
-				return delegate.getCurrentDevice().toJSON().toMap();
+				return mapper.readValue(delegate.getCurrentDevice().toString(), Map.class);
 			}else if (method == "listDrivers") {
 				return listDrivers(parameters);
 			}else{
@@ -56,14 +59,14 @@ public class GatewayMap implements Map{
 		return null;
 	}
 
-	private Object listDrivers(Map parameters) throws JSONException {
+	private Object listDrivers(Map parameters) throws IOException {
 		List<DriverData> listDrivers = delegate.listDrivers((String)parameters.get("driverName"));
 		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
 		if (listDrivers != null){
 			for (DriverData data : listDrivers){
 				Map<String, Object> new_rep = new HashMap<String, Object>();
-				new_rep.put("driver",data.getDriver().toJSON().toMap());
-				new_rep.put("device",data.getDevice().toJSON().toMap());
+				new_rep.put("driver", mapper.readValue(data.getDriver().toString(), Map.class));
+				new_rep.put("device", mapper.readValue(data.getDevice().toString(), Map.class));
 				new_rep.put("instanceID",data.getInstanceID());
 				result.add(new_rep);
 			}
@@ -72,11 +75,11 @@ public class GatewayMap implements Map{
 	}
 
 	@SuppressWarnings("unchecked")
-	private Object callService(Map parameters) throws ServiceCallException, JSONException {
-		UpDevice device = UpDevice.fromJSON((JSONObject) parameters.get("device")); 
+	private Object callService(Map parameters) throws ServiceCallException, IOException {
+		UpDevice device = mapper.treeToValue((JsonNode) parameters.get("device"), UpDevice.class); 
 		Response response ;
 		if (parameters.size() == 2){
-			Call call = Call.fromJSON((JSONObject) parameters.get("serviceCall"));
+			Call call = mapper.treeToValue((JsonNode) parameters.get("serviceCall"), Call.class);
 			response = delegate.callService(	device, call);
 		}else{
 			response =  delegate.callService(	
@@ -88,12 +91,12 @@ public class GatewayMap implements Map{
 					(Map)parameters.get("parameters")
 					);
 		}
-		return response.toJSON().toMap();
+		return mapper.readValue(response.toString(), Map.class);
 	}
 	
-	private Object registerForEvent(Map parameters) throws NotifyException, JSONException {
+	private Object registerForEvent(Map parameters) throws NotifyException, IOException {
 		UosEventListener listener	= (UosEventListener) parameters.get("listener");
-		UpDevice device = UpDevice.fromJSON((JSONObject) parameters.get("device")); 
+		UpDevice device = mapper.treeToValue((JsonNode) parameters.get("device"), UpDevice.class); 
 		String driver				= (String)parameters.get("driver");
 		String eventKey				= (String)parameters.get("eventKey");
 		
@@ -111,8 +114,8 @@ public class GatewayMap implements Map{
 		String method = (String) key;
 		if (method == "getCurrentDevice"){
 			try {
-				return delegate.getCurrentDevice().toJSON().toMap();
-			} catch (JSONException e) {
+				return mapper.readValue(delegate.getCurrentDevice().toString(), Map.class);
+			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		}else{
