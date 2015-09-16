@@ -9,7 +9,9 @@ import org.luaj.vm2.LuaClosure;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 import org.luaj.vm2.lib.jse.JsePlatform;
-import org.unbiquitous.json.JSONObject;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ExecutionUnity {
 
@@ -66,11 +68,11 @@ public class ExecutionUnity {
 		}
 	}
 
-	public JSONObject toJSON() {
+	public ObjectNode toJSON() {
 		return new ExecutionUnitySerializer(script, stateKeys, _G).toJSON();
 	}
 
-	public static ExecutionUnity fromJSON(JSONObject json) {
+	public static ExecutionUnity fromJSON(JsonNode json) {
 		return ExecutionUnitySerializer.fromJSON(json);
 	}
 }

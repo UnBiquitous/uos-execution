@@ -29,14 +29,16 @@ public class Converter {
 
 	@SuppressWarnings("rawtypes")
 	public static LuaValue objectToLuaValue(Object original) {
-		LuaValue value;
-		if(original instanceof Map){
-			value = mapToLuaTable((Map) original);
-		}else if(original instanceof Number){
-			//TODO: We're losing precision for integers
-			value = LuaValue.valueOf(Double.parseDouble(original.toString()));
-		}else{
-			value = LuaValue.valueOf(original.toString());
+		LuaValue value = LuaValue.NIL;
+		if (original != null) {
+			if(original instanceof Map){
+				value = mapToLuaTable((Map) original);
+			}else if(original instanceof Number){
+				//TODO: We're losing precision for integers
+				value = LuaValue.valueOf(Double.parseDouble(original.toString()));
+			}else{
+				value = LuaValue.valueOf(original.toString());
+			}
 		}
 		return value;
 	}

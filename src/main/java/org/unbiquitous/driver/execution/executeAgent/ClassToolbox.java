@@ -133,9 +133,9 @@ public class ClassToolbox {
 		Process result = Runtime.getRuntime().exec(script);
 		logger.fine(stream2String(result.getInputStream()));
 		final String erroMsg = stream2String(result.getErrorStream());
-		if (erroMsg != null){
+		if ((erroMsg != null) && (erroMsg.contains("Exception"))){
 			logger.severe(erroMsg);
-			throw new RuntimeException("msg");
+			throw new RuntimeException(erroMsg);
 		}
 		return new File(dir.getPath()+"/dalvik.jar");
 	}

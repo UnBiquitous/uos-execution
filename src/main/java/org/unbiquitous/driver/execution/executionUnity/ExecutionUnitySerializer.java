@@ -1,63 +1,62 @@
 package org.unbiquitous.driver.execution.executionUnity;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
 
 import org.luaj.vm2.Globals;
-import org.unbiquitous.json.JSONException;
-import org.unbiquitous.json.JSONObject;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 class ExecutionUnitySerializer {
+	private static final ObjectMapper mapper = new ObjectMapper();
+
 	private String script;
 	private Set<String> stateKeys;
 	private Globals _G;
-	
-	public ExecutionUnitySerializer(String script, Set<String> stateKeys,
-			Globals _G) {
+
+	public ExecutionUnitySerializer(String script, Set<String> stateKeys, Globals _G) {
 		super();
 		this.script = script;
 		this.stateKeys = stateKeys;
 		this._G = _G;
 	}
 
-	public JSONObject toJSON() {
-		try {
-			JSONObject unity = new JSONObject();
-			unity.put("script", script);
-			unity.put("state", buildStateJSON());
-			return unity;
-		} catch (JSONException e) {
-			throw new RuntimeException(e);
-		}
+	public ObjectNode toJSON() {
+		ObjectNode unity = mapper.createObjectNode();
+		unity.put("script", script);
+		unity.set("state", buildStateJSON());
+		return unity;
 	}
 
-	private JSONObject buildStateJSON() throws JSONException {
-		JSONObject state = new JSONObject();
-		for(String key:stateKeys){
-			state.put(key, _G.get(key));
+	private ObjectNode buildStateJSON() {
+		ObjectNode state = mapper.createObjectNode();
+		for (String key : stateKeys) {
+			state.set(key, mapper.valueToTree(_G.get(key).toString()));
 		}
 		return state;
 	}
 
-	public static ExecutionUnity fromJSON(JSONObject json) {
+	public static ExecutionUnity fromJSON(JsonNode json) {
 		try {
-			ExecutionUnity ex = new ExecutionUnity(json.optString("script"));
+			JsonNode script = json.get("script");
+			ExecutionUnity ex = new ExecutionUnity((script != null && script.isTextual()) ? script.asText() : null);
 			populateState(json, ex);
 			return ex;
-		} catch (JSONException e) {
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private static void populateState(JSONObject json, ExecutionUnity ex)
-			throws JSONException {
-		JSONObject state = json.optJSONObject("state");
-		if(state != null){
-			Iterator<String> it = state.keys();
-			while(it.hasNext()){
+	private static void populateState(JsonNode json, ExecutionUnity ex) throws IOException {
+		JsonNode state = json.get("state");
+		if (state != null) {
+			Iterator<String> it = state.fieldNames();
+			while (it.hasNext()) {
 				String key = it.next();
-				ex.setState(key, state.get(key));
+				ex.setState(key, mapper.treeToValue(state.get(key), String.class));
 			}
 		}
 	}
